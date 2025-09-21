@@ -152,6 +152,9 @@ class Smart_Page_Builder_Admin {
      */
     public function admin_init() {
         register_setting('spb_settings', 'spb_settings', array($this, 'validate_settings'));
+        
+        // Add AJAX handlers
+        add_action('wp_ajax_spb_load_content_preview', array($this, 'handle_content_preview_ajax'));
     }
 
     /**
@@ -209,5 +212,63 @@ class Smart_Page_Builder_Admin {
         }
 
         return $valid;
+    }
+
+    /**
+     * Handle AJAX request for content preview
+     *
+     * @since    1.0.0
+     */
+    public function handle_content_preview_ajax() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'spb_load_preview')) {
+            wp_die('Security check failed');
+        }
+
+        // Check user capabilities
+        if (!current_user_can('spb_approve_content')) {
+            wp_die('Insufficient permissions');
+        }
+
+        $post_id = intval($_POST['post_id']);
+        $post = get_post($post_id);
+
+        if (!$post || $post->post_type !== 'spb_dynamic_page') {
+            wp_send_json_error('Invalid post');
+        }
+
+        // Get post meta data
+        $sources = maybe_unserialize(get_post_meta($post_id, '_spb_sources', true));
+        $search_term = get_post_meta($post_id, '_spb_search_term', true);
+        $confidence = get_post_meta($post_id, '_spb_confidence', true);
+        $content_type = get_post_meta($post_id, '_spb_content_type', true);
+
+        // Format sources for display
+        $sources_html = '';
+        if (!empty($sources) && is_array($sources)) {
+            $sources_html = '<ul>';
+            foreach ($sources as $source) {
+                $sources_html .= '<li>';
+                $sources_html .= '<strong><a href="' . esc_url($source['url']) . '" target="_blank">' . esc_html($source['title']) . '</a></strong>';
+                $sources_html .= '<br><small>Relevance: ' . number_format($source['relevance_score'], 2) . '</small>';
+                $sources_html .= '<br>' . esc_html($source['excerpt']);
+                $sources_html .= '</li>';
+            }
+            $sources_html .= '</ul>';
+        } else {
+            $sources_html = '<p>No sources available.</p>';
+        }
+
+        // Send response
+        wp_send_json_success(array(
+            'title' => $post->post_title,
+            'content' => $post->post_content,
+            'sources' => $sources_html,
+            'meta' => array(
+                'search_term' => $search_term,
+                'confidence' => $confidence,
+                'content_type' => $content_type
+            )
+        ));
     }
 }

@@ -173,18 +173,30 @@ class Smart_Page_Builder_Approval_Workflow {
      * @param    float     $confidence     The confidence score
      */
     private function create_draft_content($search_term, $confidence) {
+        // Use content assembler to generate actual content
+        $content_assembler = new Smart_Page_Builder_Content_Assembler();
+        $assembled_content = $content_assembler->assemble_content($search_term);
+        
+        // Use assembled content if confidence is high enough
+        $final_confidence = max($confidence, $assembled_content['confidence']);
+        $content = $assembled_content['content'];
+        $title = $assembled_content['title'];
+        
         // Create draft post
         $post_data = array(
-            'post_title' => $this->generate_title($search_term),
-            'post_content' => $this->generate_placeholder_content($search_term),
+            'post_title' => $title,
+            'post_content' => $content,
             'post_status' => 'draft',
             'post_type' => 'spb_dynamic_page',
             'post_author' => 1, // System user
             'meta_input' => array(
                 '_spb_search_term' => $search_term,
-                '_spb_confidence' => $confidence,
+                '_spb_confidence' => $final_confidence,
                 '_spb_generated_date' => current_time('mysql'),
-                '_spb_status' => 'pending_approval'
+                '_spb_status' => 'pending_approval',
+                '_spb_content_type' => $assembled_content['template'],
+                '_spb_sources' => maybe_serialize($assembled_content['sources']),
+                '_spb_assembly_data' => maybe_serialize($assembled_content)
             )
         );
 
@@ -192,7 +204,10 @@ class Smart_Page_Builder_Approval_Workflow {
 
         if ($post_id && !is_wp_error($post_id)) {
             // Log the content generation
-            $this->log_content_generation($post_id, $search_term, $confidence);
+            $this->log_content_generation($post_id, $search_term, $final_confidence);
+            
+            // Schedule background processing for AI enhancement if enabled
+            $this->maybe_schedule_ai_enhancement($post_id, $search_term);
         }
     }
 
@@ -250,6 +265,147 @@ class Smart_Page_Builder_Approval_Workflow {
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log("SPB: Generated draft content for '{$search_term}' with confidence {$confidence} (Post ID: {$post_id})");
         }
+    }
+
+    /**
+     * Maybe schedule AI enhancement for the generated content
+     *
+     * @since    1.0.0
+     * @access   private
+     * @param    int       $post_id       The post ID
+     * @param    string    $search_term   The search term
+     */
+    private function maybe_schedule_ai_enhancement($post_id, $search_term) {
+        // Check if AI enhancement is enabled
+        $ai_enhancement_enabled = get_option('spb_ai_enhancement_enabled', false);
+        
+        if ($ai_enhancement_enabled) {
+            // Schedule background task for AI enhancement
+            wp_schedule_single_event(time() + 60, 'spb_enhance_content_with_ai', array($post_id, $search_term));
+        }
+    }
+
+    /**
+     * Approve a draft and publish it
+     *
+     * @since    1.0.0
+     * @param    int    $post_id    The post ID to approve
+     * @return   bool               Success status
+     */
+    public function approve_draft($post_id) {
+        $post = get_post($post_id);
+        
+        if (!$post || $post->post_type !== 'spb_dynamic_page') {
+            return false;
+        }
+        
+        // Update post status to published
+        $result = wp_update_post(array(
+            'ID' => $post_id,
+            'post_status' => 'publish'
+        ));
+        
+        if ($result && !is_wp_error($result)) {
+            // Update meta status
+            update_post_meta($post_id, '_spb_status', 'approved');
+            update_post_meta($post_id, '_spb_approved_date', current_time('mysql'));
+            update_post_meta($post_id, '_spb_approved_by', get_current_user_id());
+            
+            // Log approval
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log("SPB: Approved and published content (Post ID: {$post_id})");
+            }
+            
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Reject a draft
+     *
+     * @since    1.0.0
+     * @param    int    $post_id    The post ID to reject
+     * @return   bool               Success status
+     */
+    public function reject_draft($post_id) {
+        $post = get_post($post_id);
+        
+        if (!$post || $post->post_type !== 'spb_dynamic_page') {
+            return false;
+        }
+        
+        // Update meta status
+        update_post_meta($post_id, '_spb_status', 'rejected');
+        update_post_meta($post_id, '_spb_rejected_date', current_time('mysql'));
+        update_post_meta($post_id, '_spb_rejected_by', get_current_user_id());
+        
+        // Move to trash
+        $result = wp_trash_post($post_id);
+        
+        if ($result) {
+            // Log rejection
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log("SPB: Rejected and trashed content (Post ID: {$post_id})");
+            }
+            
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Bulk approve multiple drafts
+     *
+     * @since    1.0.0
+     * @param    array    $post_ids    Array of post IDs to approve
+     * @return   array                 Results array with success/failure counts
+     */
+    public function bulk_approve_drafts($post_ids) {
+        $results = array(
+            'approved' => 0,
+            'failed' => 0,
+            'errors' => array()
+        );
+        
+        foreach ($post_ids as $post_id) {
+            if ($this->approve_draft($post_id)) {
+                $results['approved']++;
+            } else {
+                $results['failed']++;
+                $results['errors'][] = "Failed to approve post ID: {$post_id}";
+            }
+        }
+        
+        return $results;
+    }
+
+    /**
+     * Bulk reject multiple drafts
+     *
+     * @since    1.0.0
+     * @param    array    $post_ids    Array of post IDs to reject
+     * @return   array                 Results array with success/failure counts
+     */
+    public function bulk_reject_drafts($post_ids) {
+        $results = array(
+            'rejected' => 0,
+            'failed' => 0,
+            'errors' => array()
+        );
+        
+        foreach ($post_ids as $post_id) {
+            if ($this->reject_draft($post_id)) {
+                $results['rejected']++;
+            } else {
+                $results['failed']++;
+                $results['errors'][] = "Failed to reject post ID: {$post_id}";
+            }
+        }
+        
+        return $results;
     }
 
     /**
