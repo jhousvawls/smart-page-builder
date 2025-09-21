@@ -131,6 +131,15 @@ class Smart_Page_Builder {
         require_once SPB_PLUGIN_DIR . 'includes/class-security-manager.php';
         require_once SPB_PLUGIN_DIR . 'includes/class-database.php';
 
+        /**
+         * Phase 2 functionality classes
+         */
+        if (defined('SPB_PHASE_2_ENABLED') && SPB_PHASE_2_ENABLED) {
+            require_once SPB_PLUGIN_DIR . 'includes/class-analytics-manager.php';
+            require_once SPB_PLUGIN_DIR . 'includes/class-ai-provider-manager.php';
+            require_once SPB_PLUGIN_DIR . 'includes/class-seo-optimizer.php';
+        }
+
         $this->loader = new Smart_Page_Builder_Loader();
     }
 
