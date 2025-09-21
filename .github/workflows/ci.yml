@@ -1,0 +1,143 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: [8.0, 8.1, 8.2]
+        wordpress-version: [6.0, 6.1, 6.2, latest]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: mbstring, intl, gd, xml, zip, mysql
+        coverage: xdebug
+    
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+    
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+    
+    - name: Install Composer dependencies
+      run: composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install Node.js dependencies
+      run: npm ci
+    
+    - name: Run PHP CodeSniffer
+      run: composer run-script phpcs
+    
+    - name: Run JavaScript linting
+      run: npm run lint:js
+    
+    - name: Run CSS linting
+      run: npm run lint:css
+    
+    - name: Build assets
+      run: npm run build
+    
+    - name: Setup WordPress test environment
+      run: |
+        bash bin/install-wp-tests.sh wordpress_test root '' localhost ${{ matrix.wordpress-version }}
+      env:
+        WP_VERSION: ${{ matrix.wordpress-version }}
+    
+    - name: Run PHPUnit tests
+      run: composer run-script test
+      env:
+        WP_TESTS_DIR: /tmp/wordpress-tests-lib
+        WP_CORE_DIR: /tmp/wordpress/
+    
+    - name: Run JavaScript tests
+      run: npm test
+    
+    - name: Upload coverage reports to Codecov
+      if: matrix.php-version == '8.1' && matrix.wordpress-version == 'latest'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Run security scan
+      uses: securecodewarrior/github-action-add-sarif@v1
+      with:
+        sarif-file: 'security-scan-results.sarif'
+    
+    - name: PHP Security Checker
+      uses: StephaneBour/actions-php-security-checker@1.1
+      with:
+        composer-lock: './composer.lock'
+
+  build:
+    needs: [test, security-scan]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        composer install --no-dev --optimize-autoloader
+        npm ci
+    
+    - name: Build production assets
+      run: npm run build
+    
+    - name: Create plugin archive
+      run: |
+        mkdir -p release
+        rsync -av --exclude-from='.gitignore' --exclude='.git' --exclude='release' --exclude='node_modules' --exclude='tests' --exclude='.github' . release/smart-page-builder/
+        cd release
+        zip -r smart-page-builder.zip smart-page-builder/
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: smart-page-builder-${{ github.sha }}
+        path: release/smart-page-builder.zip
+        retention-days: 30
