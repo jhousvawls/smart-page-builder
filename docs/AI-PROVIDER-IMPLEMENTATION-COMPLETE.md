@@ -203,3 +203,49 @@ The AI Provider System is **PRODUCTION READY** with:
 - ✅ Scalable architecture
 
 **Ready for immediate deployment with OpenAI API key configuration.**
+
+## 🔗 GitHub Repository
+
+**Repository**: https://github.com/jhousvawls/smart-page-builder
+
+### Quick Start
+```bash
+# Clone the repository
+git clone https://github.com/jhousvawls/smart-page-builder.git
+cd smart-page-builder
+
+# Install dependencies
+composer install --no-dev
+npm install
+npm run build
+
+# Upload to WordPress and activate
+```
+
+### Development Setup
+```bash
+# Clone for development
+git clone https://github.com/jhousvawls/smart-page-builder.git
+cd smart-page-builder
+
+# Install all dependencies
+composer install
+npm install
+
+# Run tests
+composer test && npm test
+
+# Start development
+npm run dev
+```
+
+### Contributing
+1. Fork the repository: https://github.com/jhousvawls/smart-page-builder
+2. Create a feature branch
+3. Make your changes and add tests
+4. Submit a pull request
+
+### Issues & Support
+- **Issues**: https://github.com/jhousvawls/smart-page-builder/issues
+- **Discussions**: https://github.com/jhousvawls/smart-page-builder/discussions
+- **Documentation**: Available in the `/docs` directory

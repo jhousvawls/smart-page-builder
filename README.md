@@ -219,7 +219,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ### Development Workflow
 
-1. Fork the repository
+1. Fork the repository at https://github.com/jhousvawls/smart-page-builder
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
 3. Make your changes and add tests
 4. Run the test suite: `composer test && npm test`
