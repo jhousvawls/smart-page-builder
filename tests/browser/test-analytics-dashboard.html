@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Page Builder - Analytics Dashboard Browser Test</title>
+    
+    <!-- WordPress Admin Styles (simulated) -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f1f1f1;
+        }
+        
+        .wrap {
+            background: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.13);
+        }
+        
+        h1 {
+            color: #23282d;
+            margin-bottom: 20px;
+        }
+        
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #00a0d2;
+        }
+        
+        .test-pass {
+            color: #46b450;
+        }
+        
+        .test-fail {
+            color: #dc3232;
+        }
+        
+        .test-warning {
+            color: #ffb900;
+        }
+        
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #0073aa;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666;
+        }
+        
+        .export-buttons {
+            margin: 20px 0;
+        }
+        
+        .button {
+            background: #0073aa;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        .button:hover {
+            background: #005a87;
+        }
+        
+        .button-secondary {
+            background: #f7f7f7;
+            color: #555;
+            border: 1px solid #ccc;
+        }
+        
+        .button-secondary:hover {
+            background: #fafafa;
+        }
+        
+        @media (max-width: 768px) {
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>Smart Page Builder - Analytics Dashboard Browser Test</h1>
+        
+        <div id="test-results" class="test-results">
+            <h3>Running Browser Compatibility Tests...</h3>
+            <div id="test-output"></div>
+        </div>
+        
+        <!-- Simulated Analytics Dashboard -->
+        <div class="analytics-grid">
+            <div class="metric-card">
+                <h3>Page Views Today</h3>
+                <div class="metric-value" id="page-views">0</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>Content Generated</h3>
+                <div class="metric-value" id="content-generated">0</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>Approval Rate</h3>
+                <div class="metric-value" id="approval-rate">0%</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>Avg. Confidence</h3>
+                <div class="metric-value" id="avg-confidence">0%</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="analytics-chart" width="800" height="400"></canvas>
+            <div class="loading" id="chart-loading">Loading chart...</div>
+        </div>
+        
+        <div class="export-buttons">
+            <button class="button" onclick="exportData('csv')">Export CSV</button>
+            <button class="button button-secondary" onclick="exportData('json')">Export JSON</button>
+            <button class="button button-secondary" onclick="refreshData()">Refresh Data</button>
+        </div>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <script>
+        // Browser Compatibility Tests
+        const tests = {
+            'ES6 Support': () => {
+                try {
+                    eval('const test = () => {}; let x = 1;');
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            },
+            
+            'Fetch API': () => {
+                return typeof fetch !== 'undefined';
+            },
+            
+            'Promise Support': () => {
+                return typeof Promise !== 'undefined';
+            },
+            
+            'Local Storage': () => {
+                try {
+                    localStorage.setItem('test', 'test');
+                    localStorage.removeItem('test');
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            },
+            
+            'CSS Grid': () => {
+                return CSS.supports('display', 'grid');
+            },
+            
+            'CSS Flexbox': () => {
+                return CSS.supports('display', 'flex');
+            },
+            
+            'Chart.js Loaded': () => {
+                return typeof Chart !== 'undefined';
+            },
+            
+            'Canvas Support': () => {
+                const canvas = document.createElement('canvas');
+                return !!(canvas.getContext && canvas.getContext('2d'));
+            },
+            
+            'JSON Support': () => {
+                return typeof JSON !== 'undefined' && typeof JSON.parse === 'function';
+            },
+            
+            'AJAX Support': () => {
+                return typeof XMLHttpRequest !== 'undefined';
+            }
+        };
+        
+        // Performance Tests
+        const performanceTests = {
+            'DOM Ready Time': () => {
+                return performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart;
+            },
+            
+            'Page Load Time': () => {
+                return performance.timing.loadEventEnd - performance.timing.navigationStart;
+            },
+            
+            'Memory Usage': () => {
+                return performance.memory ? performance.memory.usedJSHeapSize : 'N/A';
+            }
+        };
+        
+        // Run tests
+        function runTests() {
+            const output = document.getElementById('test-output');
+            let html = '<h4>Compatibility Tests:</h4><ul>';
+            
+            let passCount = 0;
+            let totalTests = Object.keys(tests).length;
+            
+            for (const [testName, testFunc] of Object.entries(tests)) {
+                const result = testFunc();
+                const status = result ? 'PASS' : 'FAIL';
+                const className = result ? 'test-pass' : 'test-fail';
+                
+                html += `<li><span class="${className}">[${status}]</span> ${testName}</li>`;
+                
+                if (result) passCount++;
+            }
+            
+            html += '</ul>';
+            
+            // Performance tests
+            html += '<h4>Performance Tests:</h4><ul>';
+            
+            for (const [testName, testFunc] of Object.entries(performanceTests)) {
+                const result = testFunc();
+                let status = 'INFO';
+                let className = 'test-warning';
+                
+                if (testName === 'DOM Ready Time' && result < 500) {
+                    status = 'GOOD';
+                    className = 'test-pass';
+                } else if (testName === 'Page Load Time' && result < 2000) {
+                    status = 'GOOD';
+                    className = 'test-pass';
+                }
+                
+                html += `<li><span class="${className}">[${status}]</span> ${testName}: ${result}${typeof result === 'number' ? 'ms' : ''}</li>`;
+            }
+            
+            html += '</ul>';
+            
+            // Overall result
+            const overallStatus = passCount === totalTests ? 'ALL TESTS PASSED' : `${passCount}/${totalTests} TESTS PASSED`;
+            const overallClass = passCount === totalTests ? 'test-pass' : 'test-warning';
+            
+            html += `<h4><span class="${overallClass}">${overallStatus}</span></h4>`;
+            
+            output.innerHTML = html;
+        }
+        
+        // Simulate analytics data
+        function generateSampleData() {
+            const data = {
+                pageViews: Math.floor(Math.random() * 1000) + 100,
+                contentGenerated: Math.floor(Math.random() * 50) + 10,
+                approvalRate: Math.floor(Math.random() * 40) + 60,
+                avgConfidence: Math.floor(Math.random() * 30) + 70
+            };
+            
+            document.getElementById('page-views').textContent = data.pageViews.toLocaleString();
+            document.getElementById('content-generated').textContent = data.contentGenerated;
+            document.getElementById('approval-rate').textContent = data.approvalRate + '%';
+            document.getElementById('avg-confidence').textContent = data.avgConfidence + '%';
+            
+            return data;
+        }
+        
+        // Create chart
+        function createChart() {
+            const ctx = document.getElementById('analytics-chart').getContext('2d');
+            
+            // Hide loading indicator
+            document.getElementById('chart-loading').style.display = 'none';
+            
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Page Views',
+                        data: [65, 59, 80, 81, 56, 55, 40],
+                        borderColor: '#0073aa',
+                        backgroundColor: 'rgba(0, 115, 170, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Content Generated',
+                        data: [28, 48, 40, 19, 86, 27, 90],
+                        borderColor: '#46b450',
+                        backgroundColor: 'rgba(70, 180, 80, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Analytics Overview'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            return chart;
+        }
+        
+        // Export functions
+        function exportData(format) {
+            const data = {
+                pageViews: document.getElementById('page-views').textContent,
+                contentGenerated: document.getElementById('content-generated').textContent,
+                approvalRate: document.getElementById('approval-rate').textContent,
+                avgConfidence: document.getElementById('avg-confidence').textContent,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (format === 'csv') {
+                const csv = Object.entries(data).map(([key, value]) => `${key},${value}`).join('\n');
+                downloadFile('analytics-data.csv', csv, 'text/csv');
+            } else if (format === 'json') {
+                const json = JSON.stringify(data, null, 2);
+                downloadFile('analytics-data.json', json, 'application/json');
+            }
+        }
+        
+        function downloadFile(filename, content, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function refreshData() {
+            generateSampleData();
+            
+            // Simulate AJAX refresh
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = 'Refreshing...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.disabled = false;
+            }, 1000);
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            runTests();
+            generateSampleData();
+            
+            // Wait for Chart.js to load
+            if (typeof Chart !== 'undefined') {
+                createChart();
+            } else {
+                setTimeout(() => {
+                    if (typeof Chart !== 'undefined') {
+                        createChart();
+                    } else {
+                        document.getElementById('chart-loading').textContent = 'Chart.js failed to load';
+                    }
+                }, 2000);
+            }
+        });
+        
+        // Test real-time updates
+        setInterval(() => {
+            if (Math.random() > 0.7) { // 30% chance to update
+                generateSampleData();
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
