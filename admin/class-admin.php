@@ -81,6 +81,20 @@ class Smart_Page_Builder_Admin {
             $this->version,
             'all'
         );
+
+        // Enqueue Phase 2 analytics dashboard styles
+        if ($this->is_phase_2_available()) {
+            $screen = get_current_screen();
+            if ($screen && strpos($screen->id, 'smart-page-builder-analytics') !== false) {
+                wp_enqueue_style(
+                    $this->plugin_name . '-analytics',
+                    plugin_dir_url(__FILE__) . 'css/analytics-dashboard.css',
+                    array(),
+                    $this->version,
+                    'all'
+                );
+            }
+        }
     }
 
     /**
@@ -108,6 +122,44 @@ class Smart_Page_Builder_Admin {
             $this->version,
             false
         );
+
+        // Enqueue Phase 2 analytics dashboard scripts
+        if ($this->is_phase_2_available()) {
+            $screen = get_current_screen();
+            if ($screen && strpos($screen->id, 'smart-page-builder-analytics') !== false) {
+                // Enqueue Chart.js for data visualization
+                wp_enqueue_script(
+                    'chart-js',
+                    'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js',
+                    array(),
+                    '3.9.1',
+                    true
+                );
+
+                wp_enqueue_script(
+                    $this->plugin_name . '-analytics',
+                    plugin_dir_url(__FILE__) . 'js/analytics-dashboard.js',
+                    array('jquery', 'chart-js'),
+                    $this->version,
+                    true
+                );
+
+                // Localize script for AJAX
+                wp_localize_script(
+                    $this->plugin_name . '-analytics',
+                    'spbAnalytics',
+                    array(
+                        'ajaxUrl' => admin_url('admin-ajax.php'),
+                        'nonce' => wp_create_nonce('spb_analytics_nonce'),
+                        'strings' => array(
+                            'loading' => __('Loading...', 'smart-page-builder'),
+                            'error' => __('An error occurred. Please try again.', 'smart-page-builder'),
+                            'success' => __('Operation completed successfully.', 'smart-page-builder')
+                        )
+                    )
+                );
+            }
+        }
     }
 
     /**
@@ -270,5 +322,33 @@ class Smart_Page_Builder_Admin {
                 'content_type' => $content_type
             )
         ));
+    }
+
+    /**
+     * Check if Phase 2 features are available
+     *
+     * @since     2.0.0
+     * @return    bool    True if Phase 2 is available, false otherwise.
+     */
+    private function is_phase_2_available() {
+        // Check if Phase 2 is explicitly disabled by admin setting
+        if (get_option('spb_disable_phase_2', false)) {
+            return false;
+        }
+
+        // Check if Phase 2 is marked as available (set during activation)
+        if (!get_option('spb_phase_2_available', false)) {
+            return false;
+        }
+
+        // Verify Phase 2 database tables exist
+        global $wpdb;
+        $analytics_table = $wpdb->prefix . 'spb_analytics';
+        $ab_tests_table = $wpdb->prefix . 'spb_ab_tests';
+        
+        $analytics_exists = $wpdb->get_var("SHOW TABLES LIKE '{$analytics_table}'") === $analytics_table;
+        $ab_tests_exists = $wpdb->get_var("SHOW TABLES LIKE '{$ab_tests_table}'") === $ab_tests_table;
+        
+        return $analytics_exists && $ab_tests_exists;
     }
 }

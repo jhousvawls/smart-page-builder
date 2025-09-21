@@ -132,12 +132,13 @@ class Smart_Page_Builder {
         require_once SPB_PLUGIN_DIR . 'includes/class-database.php';
 
         /**
-         * Phase 2 functionality classes
+         * Phase 2 functionality classes - automatically loaded if available
          */
-        if (defined('SPB_PHASE_2_ENABLED') && SPB_PHASE_2_ENABLED) {
+        if ($this->is_phase_2_available()) {
             require_once SPB_PLUGIN_DIR . 'includes/class-analytics-manager.php';
             require_once SPB_PLUGIN_DIR . 'includes/class-ai-provider-manager.php';
             require_once SPB_PLUGIN_DIR . 'includes/class-seo-optimizer.php';
+            require_once SPB_PLUGIN_DIR . 'includes/class-ab-testing.php';
         }
 
         $this->loader = new Smart_Page_Builder_Loader();
@@ -234,5 +235,38 @@ class Smart_Page_Builder {
      */
     public function get_version() {
         return $this->version;
+    }
+
+    /**
+     * Check if Phase 2 features are available
+     *
+     * Determines if Phase 2 features should be loaded based on:
+     * - Database tables existence
+     * - Plugin option setting
+     * - Admin setting (if user wants to disable)
+     *
+     * @since     2.0.0
+     * @return    bool    True if Phase 2 is available, false otherwise.
+     */
+    public function is_phase_2_available() {
+        // Check if Phase 2 is explicitly disabled by admin setting
+        if (get_option('spb_disable_phase_2', false)) {
+            return false;
+        }
+
+        // Check if Phase 2 is marked as available (set during activation)
+        if (!get_option('spb_phase_2_available', false)) {
+            return false;
+        }
+
+        // Verify Phase 2 database tables exist
+        global $wpdb;
+        $analytics_table = $wpdb->prefix . 'spb_analytics';
+        $ab_tests_table = $wpdb->prefix . 'spb_ab_tests';
+        
+        $analytics_exists = $wpdb->get_var("SHOW TABLES LIKE '{$analytics_table}'") === $analytics_table;
+        $ab_tests_exists = $wpdb->get_var("SHOW TABLES LIKE '{$ab_tests_table}'") === $ab_tests_table;
+        
+        return $analytics_exists && $ab_tests_exists;
     }
 }

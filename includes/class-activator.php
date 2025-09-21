@@ -24,14 +24,19 @@ if (!defined('ABSPATH')) {
 class Smart_Page_Builder_Activator {
 
     /**
-     * Short Description. (use period)
+     * Plugin activation handler
      *
-     * Long Description.
+     * Creates database tables, sets default options, adds capabilities,
+     * and schedules cron jobs. Handles both fresh installs and upgrades.
      *
      * @since    1.0.0
      */
     public static function activate() {
-        // Create database tables
+        // Check if this is an upgrade
+        $installed_version = get_option('spb_version', '0.0.0');
+        $current_version = defined('SPB_VERSION') ? SPB_VERSION : '2.0.0';
+        
+        // Create/update database tables
         self::create_database_tables();
         
         // Set default options
@@ -43,12 +48,19 @@ class Smart_Page_Builder_Activator {
         // Schedule cron jobs
         self::schedule_cron_jobs();
         
+        // Update version numbers
+        update_option('spb_version', $current_version);
+        update_option('spb_db_version', '2.0.0');
+        
+        // Mark Phase 2 as available
+        update_option('spb_phase_2_available', true);
+        
         // Flush rewrite rules
         flush_rewrite_rules();
         
         // Log activation
         if (defined('SPB_DEBUG') && SPB_DEBUG) {
-            error_log('Smart Page Builder activated successfully');
+            error_log("Smart Page Builder activated successfully (v{$current_version})");
         }
     }
 
@@ -157,6 +169,93 @@ class Smart_Page_Builder_Activator {
             KEY content_type (content_type),
             KEY expires_at (expires_at),
             KEY user_id (user_id)
+        ) $charset_collate;";
+
+        // Phase 2 Analytics table
+        $table_name = $wpdb->prefix . 'spb_analytics';
+        $sql .= "CREATE TABLE $table_name (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            post_id BIGINT(20) UNSIGNED,
+            event_type VARCHAR(50) NOT NULL,
+            search_term TEXT,
+            has_results TINYINT(1) DEFAULT 1,
+            result_count INT(11) DEFAULT 0,
+            confidence_score DECIMAL(5,4),
+            generation_time DECIMAL(10,3),
+            word_count INT(11),
+            source_count INT(11),
+            content_type VARCHAR(100),
+            approval_time DECIMAL(10,3),
+            rejection_reason TEXT,
+            user_id BIGINT(20) UNSIGNED,
+            timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            user_agent TEXT,
+            ip_address VARCHAR(45),
+            referrer TEXT,
+            session_id VARCHAR(100),
+            PRIMARY KEY (id),
+            INDEX idx_post_id (post_id),
+            INDEX idx_event_type (event_type),
+            INDEX idx_timestamp (timestamp),
+            INDEX idx_search_term (search_term(100)),
+            INDEX idx_content_type (content_type)
+        ) $charset_collate;";
+
+        // Phase 2 A/B Tests table (enhanced)
+        $table_name = $wpdb->prefix . 'spb_ab_tests';
+        $sql .= "CREATE TABLE $table_name (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            test_type ENUM('template', 'algorithm', 'confidence') NOT NULL,
+            status ENUM('active', 'stopped', 'completed', 'archived') DEFAULT 'active',
+            config LONGTEXT,
+            start_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            end_date DATETIME,
+            target_sample_size INT(11) DEFAULT 100,
+            confidence_level DECIMAL(5,2) DEFAULT 95.00,
+            stop_reason TEXT,
+            created_by BIGINT(20) UNSIGNED,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            INDEX idx_status (status),
+            INDEX idx_test_type (test_type),
+            INDEX idx_created_by (created_by)
+        ) $charset_collate;";
+
+        // Phase 2 A/B Test Variants table
+        $table_name = $wpdb->prefix . 'spb_ab_test_variants';
+        $sql .= "CREATE TABLE $table_name (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            test_id BIGINT(20) UNSIGNED NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            config LONGTEXT,
+            traffic_allocation DECIMAL(5,2) DEFAULT 50.00,
+            is_control TINYINT(1) DEFAULT 0,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            INDEX idx_test_id (test_id),
+            INDEX idx_is_control (is_control),
+            FOREIGN KEY (test_id) REFERENCES {$wpdb->prefix}spb_ab_tests(id) ON DELETE CASCADE
+        ) $charset_collate;";
+
+        // Phase 2 A/B Test Results table
+        $table_name = $wpdb->prefix . 'spb_ab_test_results';
+        $sql .= "CREATE TABLE $table_name (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            test_id BIGINT(20) UNSIGNED NOT NULL,
+            variant_id BIGINT(20) UNSIGNED NOT NULL,
+            event_type ENUM('generation', 'conversion', 'engagement') NOT NULL,
+            event_data LONGTEXT,
+            timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            INDEX idx_test_id (test_id),
+            INDEX idx_variant_id (variant_id),
+            INDEX idx_event_type (event_type),
+            INDEX idx_timestamp (timestamp),
+            FOREIGN KEY (test_id) REFERENCES {$wpdb->prefix}spb_ab_tests(id) ON DELETE CASCADE,
+            FOREIGN KEY (variant_id) REFERENCES {$wpdb->prefix}spb_ab_test_variants(id) ON DELETE CASCADE
         ) $charset_collate;";
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
