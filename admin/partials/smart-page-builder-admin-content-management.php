@@ -678,14 +678,46 @@ if ($table_exists) {
 </style>
 
 <script>
-// Define AJAX variables for content management
+// COMPREHENSIVE DIAGNOSTIC SCRIPT
+console.log('=== SPB DIAGNOSTIC START ===');
+
+// 1. Check current page info
+console.log('Current URL:', window.location.href);
+console.log('Current page query param:', new URLSearchParams(window.location.search).get('page'));
+
+// 2. Check if admin scripts are being enqueued
+console.log('Document ready state:', document.readyState);
+console.log('jQuery available:', typeof jQuery !== 'undefined');
+
+// 3. Define AJAX variables for content management
 var spb_admin = spb_admin || {
     ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
     nonce: '<?php echo wp_create_nonce('spb_admin_nonce'); ?>'
 };
 
-// Debug: Log variables to console
+// 4. Debug: Log variables to console
 console.log('SPB Admin Variables:', spb_admin);
+
+// 5. Check if main admin script loaded
+console.log('Main admin script loaded:', typeof window.spb_main_script_loaded !== 'undefined');
+
+// 6. Check WordPress admin globals
+console.log('WordPress ajaxurl:', typeof ajaxurl !== 'undefined' ? ajaxurl : 'NOT DEFINED');
+
+// 7. Check script tags in document
+setTimeout(function() {
+    var scripts = document.querySelectorAll('script[src*="smart-page-builder"]');
+    console.log('SPB script tags found:', scripts.length);
+    scripts.forEach(function(script, index) {
+        console.log('Script ' + (index + 1) + ':', script.src);
+    });
+    
+    // Check if any scripts failed to load
+    var allScripts = document.querySelectorAll('script[src]');
+    console.log('Total script tags:', allScripts.length);
+    
+    console.log('=== SPB DIAGNOSTIC END ===');
+}, 1000);
 
 jQuery(document).ready(function($) {
     console.log('Content Management JavaScript loaded');
