@@ -1,0 +1,207 @@
+name: Smart Page Builder v3.0 - Comprehensive Testing
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  comprehensive-testing:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: spb_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    strategy:
+      matrix:
+        php-version: [8.0, 8.1, 8.2]
+        wordpress-version: [6.0, 6.1, 6.2, 6.3]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, mysql, pdo_mysql, bcmath, soap, intl, gd, exif, iconv
+        coverage: xdebug
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install Composer dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+    - name: Install NPM dependencies
+      run: npm ci
+
+    - name: Setup WordPress test environment
+      run: |
+        bash bin/install-wp-tests.sh spb_test root root localhost ${{ matrix.wordpress-version }}
+
+    - name: Create test user credentials file
+      run: |
+        echo "<?php
+        define('SPB_TEST_USER_EMAIL', 'vscode@ahsodesigns.com');
+        define('SPB_TEST_USER_PASSWORD', 'MzV^Y!FP\$Ne9w3b)yXdeObe1');
+        ?>" > tests/test-credentials.php
+
+    - name: Run User Interest Detection Tests
+      run: |
+        echo "🧠 Running User Interest Detection Tests..."
+        vendor/bin/phpunit tests/comprehensive/test-user-interest-detection.php --coverage-clover=coverage-interest.xml
+
+    - name: Run Intelligent Discovery Tests
+      run: |
+        echo "🔍 Running Intelligent Discovery Tests..."
+        vendor/bin/phpunit tests/comprehensive/test-intelligent-discovery.php --coverage-clover=coverage-discovery.xml
+
+    - name: Run Dynamic Assembly Tests
+      run: |
+        echo "🎨 Running Dynamic Assembly Tests..."
+        vendor/bin/phpunit tests/comprehensive/test-dynamic-assembly.php --coverage-clover=coverage-assembly.xml
+
+    - name: Run Comprehensive Test Suite
+      run: |
+        echo "🚀 Running Complete Comprehensive Test Suite..."
+        php tests/comprehensive/test-runner.php > test-results.txt 2>&1
+        cat test-results.txt
+
+    - name: Run Performance Benchmarks
+      run: |
+        echo "⚡ Running Performance Benchmarks..."
+        php tests/performance/benchmark-runner.php
+
+    - name: Check for Dummy Data
+      run: |
+        echo "🔍 Scanning for dummy data..."
+        php tests/comprehensive/dummy-data-scanner.php
+
+    - name: Validate Backend Data Collection
+      run: |
+        echo "📊 Validating backend data collection..."
+        php tests/integration/backend-validation.php
+
+    - name: Generate Test Report
+      run: |
+        echo "📋 Generating comprehensive test report..."
+        php tests/reporting/generate-report.php
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-php${{ matrix.php-version }}-wp${{ matrix.wordpress-version }}
+        path: |
+          test-results.txt
+          coverage-*.xml
+          tests/comprehensive/test-report-*.json
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage-interest.xml,./coverage-discovery.xml,./coverage-assembly.xml
+        flags: comprehensive-tests
+        name: codecov-umbrella
+
+    - name: Notify on failure
+      if: failure()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        channel: '#spb-testing'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+
+  deployment-readiness:
+    needs: comprehensive-testing
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Download test results
+      uses: actions/download-artifact@v3
+      with:
+        path: test-artifacts
+
+    - name: Analyze test results
+      run: |
+        echo "📊 Analyzing test results for deployment readiness..."
+        php tests/deployment/readiness-check.php test-artifacts/
+
+    - name: Create deployment tag
+      if: success()
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git tag -a "v3.0.$(date +%Y%m%d%H%M%S)" -m "Automated deployment tag - all tests passed"
+        git push origin --tags
+
+    - name: Deploy to staging
+      if: success()
+      run: |
+        echo "🚀 Deploying to staging environment..."
+        # Add staging deployment commands here
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Run security scan with CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: php
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+
+    - name: Check for vulnerabilities
+      run: |
+        echo "🔒 Running security vulnerability scan..."
+        if command -v composer &> /dev/null; then
+          composer audit || echo "No composer audit available"
+        fi
+
+  performance-monitoring:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup monitoring
+      run: |
+        echo "📈 Setting up performance monitoring..."
+        php tests/monitoring/setup-monitoring.php
+
+    - name: Run load tests
+      run: |
+        echo "🔥 Running load tests..."
+        php tests/performance/load-test-runner.php
+
+    - name: Generate performance report
+      run: |
+        echo "📊 Generating performance report..."
+        php tests/performance/performance-reporter.php

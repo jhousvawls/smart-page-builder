@@ -245,6 +245,16 @@ class Smart_Page_Builder_Admin {
             array($this, 'display_plugin_wpengine_page')
         );
 
+        // AI Providers submenu - now under Configuration
+        add_submenu_page(
+            $this->plugin_name,
+            __('AI Content Generation', 'smart-page-builder'),
+            __('— AI Providers', 'smart-page-builder'), // Indented to show hierarchy
+            'manage_options',
+            $this->plugin_name . '-ai-providers',
+            array($this, 'display_plugin_ai_providers_page')
+        );
+
         // Help & Support submenu (renamed for clarity)
         add_submenu_page(
             $this->plugin_name,
@@ -303,6 +313,14 @@ class Smart_Page_Builder_Admin {
         if (defined('SPB_V3_SEARCH_GENERATION') && SPB_V3_SEARCH_GENERATION) {
             register_setting('spb_search_generation_settings', 'spb_search_generation_options');
         }
+
+        // OpenAI settings (v3.4)
+        register_setting('spb_openai_settings', 'spb_openai_enabled');
+        register_setting('spb_openai_settings', 'spb_openai_api_key');
+        register_setting('spb_openai_settings', 'spb_openai_default_model');
+        register_setting('spb_openai_settings', 'spb_openai_search_model');
+        register_setting('spb_openai_settings', 'spb_openai_temperature');
+        register_setting('spb_openai_settings', 'spb_openai_max_tokens');
     }
 
     /**
@@ -353,6 +371,11 @@ class Smart_Page_Builder_Admin {
         // WP Engine AJAX handlers
         add_action('wp_ajax_spb_test_wpengine_connection', array($this, 'ajax_test_wpengine_connection'));
         add_action('wp_ajax_spb_test_wpengine_integration', array($this, 'ajax_test_wpengine_integration'));
+        
+        // Load OpenAI AJAX handlers
+        if (file_exists(SPB_PLUGIN_DIR . 'admin/class-openai-ajax.php')) {
+            require_once SPB_PLUGIN_DIR . 'admin/class-openai-ajax.php';
+        }
     }
 
     /**
@@ -410,8 +433,7 @@ class Smart_Page_Builder_Admin {
      * @since    3.2.0
      */
     public function display_plugin_content_management_page() {
-        // Use ultimate cache bypass version to test if caching is the issue
-        include_once SPB_PLUGIN_DIR . 'admin/partials/smart-page-builder-admin-content-management-v3.php';
+        include_once SPB_PLUGIN_DIR . 'admin/partials/smart-page-builder-admin-content-management.php';
     }
 
     /**
@@ -425,6 +447,15 @@ class Smart_Page_Builder_Admin {
         } else {
             wp_die(__('Content approval features are not available.', 'smart-page-builder'));
         }
+    }
+
+    /**
+     * Display AI providers page
+     *
+     * @since    3.4.0
+     */
+    public function display_plugin_ai_providers_page() {
+        include_once SPB_PLUGIN_DIR . 'admin/partials/smart-page-builder-admin-ai-providers.php';
     }
 
     /**

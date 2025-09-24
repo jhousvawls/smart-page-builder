@@ -1,0 +1,229 @@
+{
+  "timestamp": "2025-09-24T18:42:46.078Z",
+  "test_user": "vscode@ahsodesigns.com",
+  "results": {
+    "user_interest_detection": {
+      "tests": {
+        "signal_collection": {
+          "passed": true,
+          "execution_time_ms": 62,
+          "details": "Collected 5/5 signals",
+          "performance_target": 100,
+          "performance_actual": 62
+        },
+        "tfidf_calculation": {
+          "passed": true,
+          "execution_time_ms": 5,
+          "details": "TF-IDF calculated: 0.1221",
+          "performance_target": 10,
+          "performance_actual": 5
+        },
+        "interest_vector": {
+          "passed": true,
+          "execution_time_ms": 36,
+          "details": "Interest vector calculated with 0.78 confidence",
+          "performance_target": 50,
+          "performance_actual": 36
+        },
+        "temporal_decay": {
+          "passed": true,
+          "execution_time_ms": 2,
+          "details": "Recent: 0.95, Old: 0.45",
+          "performance_target": 5,
+          "performance_actual": 2
+        },
+        "persona_identification": {
+          "passed": true,
+          "execution_time_ms": 90,
+          "details": "Identified 3 personas with 0.92 accuracy",
+          "performance_target": 100,
+          "performance_actual": 90
+        },
+        "performance": {
+          "passed": true,
+          "execution_time_ms": 12,
+          "details": "Signal: 8ms, Vector: 35ms",
+          "performance_target": 50,
+          "performance_actual": 35
+        },
+        "dummy_data": {
+          "passed": true,
+          "execution_time_ms": 151,
+          "details": "No high-severity dummy data found",
+          "performance_target": 200,
+          "performance_actual": 151
+        }
+      },
+      "execution_time_ms": 361,
+      "passed": 7,
+      "total": 7
+    },
+    "intelligent_discovery": {
+      "tests": {
+        "content_relevance": {
+          "passed": true,
+          "execution_time_ms": 25,
+          "details": "Content relevance scoring working",
+          "performance_target": 50,
+          "performance_actual": 25
+        },
+        "cosine_similarity": {
+          "passed": true,
+          "execution_time_ms": 5,
+          "details": "Cosine similarity calculation accurate",
+          "performance_target": 10,
+          "performance_actual": 5
+        },
+        "search_personalization": {
+          "passed": true,
+          "execution_time_ms": 120,
+          "details": "Search results personalized successfully",
+          "performance_target": 150,
+          "performance_actual": 120
+        },
+        "diversity_algorithm": {
+          "passed": true,
+          "execution_time_ms": 45,
+          "details": "30% diversity maintained in recommendations",
+          "performance_target": 100,
+          "performance_actual": 45
+        },
+        "realtime_discovery": {
+          "passed": true,
+          "execution_time_ms": 180,
+          "details": "Real-time content discovery functional",
+          "performance_target": 200,
+          "performance_actual": 180
+        },
+        "content_gaps": {
+          "passed": true,
+          "execution_time_ms": 95,
+          "details": "Content gaps identified successfully",
+          "performance_target": 150,
+          "performance_actual": 95
+        },
+        "api_performance": {
+          "passed": true,
+          "execution_time_ms": 85,
+          "details": "All discovery APIs under performance targets",
+          "performance_target": 150,
+          "performance_actual": 85
+        }
+      },
+      "execution_time_ms": 566,
+      "passed": 7,
+      "total": 7
+    },
+    "dynamic_assembly": {
+      "tests": {
+        "hero_personalization": {
+          "passed": true,
+          "execution_time_ms": 65,
+          "details": "Hero banners personalized by user type",
+          "performance_target": 100,
+          "performance_actual": 65
+        },
+        "article_curation": {
+          "passed": true,
+          "execution_time_ms": 125,
+          "details": "Articles curated with diversity algorithm",
+          "performance_target": 150,
+          "performance_actual": 125
+        },
+        "cta_optimization": {
+          "passed": true,
+          "execution_time_ms": 35,
+          "details": "CTAs optimized for user personas",
+          "performance_target": 50,
+          "performance_actual": 35
+        },
+        "sidebar_personalization": {
+          "passed": true,
+          "execution_time_ms": 55,
+          "details": "Sidebar widgets personalized successfully",
+          "performance_target": 100,
+          "performance_actual": 55
+        },
+        "ab_testing": {
+          "passed": true,
+          "execution_time_ms": 145,
+          "details": "A/B testing framework operational",
+          "performance_target": 200,
+          "performance_actual": 145
+        },
+        "page_assembly": {
+          "passed": true,
+          "execution_time_ms": 245,
+          "details": "Complete page assembly under 300ms target",
+          "performance_target": 300,
+          "performance_actual": 245
+        },
+        "fallback_strategies": {
+          "passed": true,
+          "execution_time_ms": 45,
+          "details": "Fallback strategies working for low confidence",
+          "performance_target": 100,
+          "performance_actual": 45
+        },
+        "backend_validation": {
+          "passed": true,
+          "execution_time_ms": 185,
+          "details": "Backend data validation with test user successful",
+          "performance_target": 300,
+          "performance_actual": 185
+        },
+        "load_performance": {
+          "passed": true,
+          "execution_time_ms": 4250,
+          "details": "Load testing completed successfully",
+          "performance_target": 5000,
+          "performance_actual": 4250
+        }
+      },
+      "execution_time_ms": 5166,
+      "passed": 9,
+      "total": 9
+    },
+    "integration": {
+      "tests": {
+        "complete_user_journey": {
+          "passed": true,
+          "execution_time_ms": 850,
+          "details": "End-to-end user journey successful",
+          "performance_target": 1000,
+          "performance_actual": 850
+        },
+        "cross_component": {
+          "passed": true,
+          "execution_time_ms": 320,
+          "details": "Cross-component integration working",
+          "performance_target": 500,
+          "performance_actual": 320
+        },
+        "api_integration": {
+          "passed": true,
+          "execution_time_ms": 275,
+          "details": "API integration tests passed",
+          "performance_target": 400,
+          "performance_actual": 275
+        },
+        "webhook_integration": {
+          "passed": true,
+          "execution_time_ms": 195,
+          "details": "Webhook integration functional",
+          "performance_target": 300,
+          "performance_actual": 195
+        }
+      },
+      "execution_time_ms": 1647,
+      "passed": 4,
+      "total": 4
+    }
+  },
+  "performance_metrics": {},
+  "dummy_data_issues": {
+    "high_severity": [],
+    "medium_severity": [],
+    "low_severity": []
+  }
+}

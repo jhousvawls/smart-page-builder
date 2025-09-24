@@ -1,0 +1,500 @@
+/**
+ * Smart Page Builder Personalization Styles
+ *
+ * @package Smart_Page_Builder
+ * @since   3.0.0
+ */
+
+/* ==========================================================================
+   Personalization Styles
+   ========================================================================== */
+
+/* Personalized Content Containers */
+.spb-personalized-content {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.spb-personalized-content.spb-loading {
+    opacity: 0.7;
+}
+
+.spb-personalized-content.spb-high-relevance {
+    border-left: 4px solid #28a745;
+    padding-left: 15px;
+}
+
+.spb-personalized-content.spb-medium-relevance {
+    border-left: 4px solid #ffc107;
+    padding-left: 15px;
+}
+
+.spb-personalized-content.spb-low-relevance {
+    border-left: 4px solid #6c757d;
+    padding-left: 15px;
+}
+
+/* Interest-Based Content */
+.spb-interest-based {
+    position: relative;
+    overflow: hidden;
+}
+
+.spb-interest-based::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.spb-interest-based.spb-matched::before {
+    opacity: 1;
+}
+
+/* Personalization Indicators */
+.spb-personalization-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 115, 170, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: 600;
+    z-index: 10;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+.spb-personalized-content:hover .spb-personalization-indicator {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.spb-personalization-indicator.spb-high-match {
+    background: rgba(40, 167, 69, 0.9);
+}
+
+.spb-personalization-indicator.spb-medium-match {
+    background: rgba(255, 193, 7, 0.9);
+    color: #333;
+}
+
+.spb-personalization-indicator.spb-low-match {
+    background: rgba(108, 117, 125, 0.9);
+}
+
+/* Adaptive Content Sections */
+.spb-adaptive-section {
+    transition: all 0.5s ease;
+    transform-origin: top;
+}
+
+.spb-adaptive-section.spb-expanding {
+    animation: spb-expand 0.5s ease-out;
+}
+
+.spb-adaptive-section.spb-collapsing {
+    animation: spb-collapse 0.5s ease-out;
+}
+
+@keyframes spb-expand {
+    from {
+        max-height: 0;
+        opacity: 0;
+        transform: scaleY(0);
+    }
+    to {
+        max-height: 1000px;
+        opacity: 1;
+        transform: scaleY(1);
+    }
+}
+
+@keyframes spb-collapse {
+    from {
+        max-height: 1000px;
+        opacity: 1;
+        transform: scaleY(1);
+    }
+    to {
+        max-height: 0;
+        opacity: 0;
+        transform: scaleY(0);
+    }
+}
+
+/* Interest Tags */
+.spb-interest-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 15px 0;
+}
+
+.spb-interest-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 16px;
+    font-size: 0.85em;
+    color: #495057;
+    transition: all 0.3s ease;
+}
+
+.spb-interest-tag.spb-active {
+    background: #0073aa;
+    color: white;
+    border-color: #0073aa;
+}
+
+.spb-interest-tag.spb-trending {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    color: white;
+    border-color: transparent;
+    animation: spb-pulse 2s infinite;
+}
+
+@keyframes spb-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Personalized Recommendations */
+.spb-recommendations {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 25px;
+    margin: 30px 0;
+    border: 1px solid #e9ecef;
+}
+
+.spb-recommendations-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.spb-recommendations-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230073aa"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>') no-repeat center;
+    background-size: contain;
+}
+
+.spb-recommendations-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.spb-recommendation-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.spb-recommendation-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #0073aa;
+}
+
+.spb-recommendation-content {
+    flex: 1;
+}
+
+.spb-recommendation-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.spb-recommendation-excerpt {
+    font-size: 0.9em;
+    color: #666;
+    line-height: 1.4;
+}
+
+.spb-recommendation-score {
+    background: #0073aa;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: 600;
+    margin-left: 15px;
+}
+
+/* User Interest Visualization */
+.spb-interest-meter {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.spb-interest-meter-label {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.spb-interest-meter-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.spb-interest-meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745, #20c997);
+    border-radius: 4px;
+    transition: width 0.8s ease;
+    position: relative;
+}
+
+.spb-interest-meter-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: spb-shimmer 2s infinite;
+}
+
+@keyframes spb-shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Personalization Controls */
+.spb-personalization-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 15px;
+    z-index: 1000;
+    max-width: 300px;
+    transform: translateX(calc(100% + 20px));
+    transition: transform 0.3s ease;
+}
+
+.spb-personalization-controls.spb-visible {
+    transform: translateX(0);
+}
+
+.spb-personalization-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: #0073aa;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1001;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+}
+
+.spb-personalization-toggle:hover {
+    background: #005a87;
+    transform: scale(1.1);
+}
+
+.spb-personalization-toggle.spb-active {
+    background: #28a745;
+}
+
+/* Privacy Notice */
+.spb-privacy-notice {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px 0;
+    font-size: 0.9em;
+    color: #856404;
+}
+
+.spb-privacy-notice-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.spb-privacy-controls {
+    margin-top: 15px;
+}
+
+.spb-privacy-button {
+    background: #ffc107;
+    color: #212529;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+    font-size: 0.85em;
+    transition: background-color 0.3s ease;
+}
+
+.spb-privacy-button:hover {
+    background: #e0a800;
+}
+
+.spb-privacy-button.spb-accept {
+    background: #28a745;
+    color: white;
+}
+
+.spb-privacy-button.spb-accept:hover {
+    background: #218838;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .spb-personalization-controls {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        transform: translateY(calc(100% + 20px));
+    }
+    
+    .spb-personalization-controls.spb-visible {
+        transform: translateY(0);
+    }
+    
+    .spb-personalization-toggle {
+        bottom: 10px;
+        right: 10px;
+    }
+    
+    .spb-recommendations {
+        padding: 20px 15px;
+    }
+    
+    .spb-recommendation-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .spb-recommendation-score {
+        margin-left: 0;
+        margin-top: 10px;
+        align-self: flex-end;
+    }
+    
+    .spb-interest-tags {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .spb-personalization-indicator {
+        position: static;
+        display: inline-block;
+        margin-bottom: 10px;
+        opacity: 1;
+        transform: none;
+    }
+    
+    .spb-recommendations-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .spb-recommendations-icon {
+        margin-bottom: 10px;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .spb-recommendations {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+    
+    .spb-recommendation-item {
+        background: #1a202c;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+    
+    .spb-recommendation-title {
+        color: #f7fafc;
+    }
+    
+    .spb-recommendation-excerpt {
+        color: #a0aec0;
+    }
+    
+    .spb-interest-meter {
+        background: #2d3748;
+    }
+    
+    .spb-interest-meter-bar {
+        background: #4a5568;
+    }
+    
+    .spb-personalization-controls {
+        background: #2d3748;
+        color: #e2e8f0;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .spb-personalization-controls,
+    .spb-personalization-toggle,
+    .spb-personalization-indicator,
+    .spb-privacy-notice {
+        display: none !important;
+    }
+    
+    .spb-personalized-content,
+    .spb-interest-based {
+        border: none !important;
+        padding-left: 0 !important;
+    }
+}

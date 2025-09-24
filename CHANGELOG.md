@@ -5,6 +5,116 @@ All notable changes to Smart Page Builder will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.4] - 2025-09-24
+
+### Fixed
+- **CRITICAL**: Content generation system displaying empty pages despite successful AI generation
+- Template loading system not parsing stored content properly for display
+- Missing content structure conversion from database storage to template variables
+- Fallback template referencing non-existent database fields
+
+### Added
+- **Complete Source Attribution System**: Shows where content originated with clickable links
+- Enhanced content parsing system for both AI-enhanced and WP Engine discovery content
+- Smart template selection based on search intent (commercial, educational, informational)
+- Comprehensive fallback template system with proper content structure
+- Visual source cards with styling and attribution notices
+- Content source tracking with URLs, titles, and excerpts
+
+### Enhanced
+- Template loading with proper content structure for all templates
+- Content parsing to handle multiple content formats (AI-enhanced vs discovery results)
+- Search page display with full content, key points, and source attribution
+- Intent-based template selection for better user experience
+- Error handling and fallback content generation
+
+### Technical Details
+- **Enhanced Classes**: Updated `SPB_Search_Integration_Manager` with complete content parsing system
+- **New Methods**: 
+  - `parse_page_content_for_template()` - Converts stored JSON to template-ready arrays
+  - `convert_discovery_results_to_content()` - Transforms WP Engine results to structured content
+  - `generate_basic_content_structure()` - Creates fallback content when needed
+  - `determine_template_type()` - Intent-based template selection
+  - `load_enhanced_fallback_template()` - Comprehensive fallback with source attribution
+- **Content Structure**: Standardized hero/article/cta format for all templates
+- **Source Attribution**: Complete tracking and display of content sources
+
+### Result
+- Search pages now display full, structured content with source attribution
+- "How to remodel a bathroom" searches show comprehensive content with sources
+- Templates receive properly formatted content arrays instead of raw JSON
+- Source attribution clearly shows content origins with clickable links
+- Fallback system provides content even when AI generation encounters issues
+
+## [3.4.0] - 2025-09-24
+
+### Added
+- **Complete ChatGPT Integration**: Full OpenAI API integration for AI-powered search page generation
+- **AI Provider System**: Extensible architecture supporting multiple AI providers (OpenAI, future: Anthropic, Google)
+- **Real-time Content Generation**: Automatic AI page creation when users search your site
+- **Beautiful Loading Experience**: Professional loading screens with progress indicators during AI generation
+- **Enhanced Admin Interface**: New "AI Providers" tab under Configuration with real-time testing
+- **Auto-Approval System**: High-quality AI content (85%+ confidence) automatically publishes
+- **Content Management Dashboard**: Comprehensive interface for reviewing, editing, and managing AI-generated content
+- **Bulk Actions**: Approve, reject, or delete multiple AI-generated pages at once
+- **Background Processing**: AI generation happens in background for optimal performance
+- **Graceful Fallbacks**: Comprehensive error handling and recovery mechanisms
+
+### Enhanced
+- **Search Integration Manager**: Updated with ChatGPT support and improved error handling
+- **AJAX System**: Fixed infinite loop issues and improved status checking
+- **Parameter Handling**: Resolved JavaScript/PHP parameter naming inconsistencies
+- **Database Integration**: Enhanced storage for AI-generated content with metadata tracking
+- **Security**: Proper nonce verification and capability checks for all AI operations
+
+### Fixed
+- **Critical AJAX Loop Bug**: Resolved infinite status checking that caused performance issues
+- **Missing Background Generation**: Added essential background processing method
+- **Parameter Mismatches**: Fixed communication between frontend and backend
+- **Search Functionality**: Verified and improved search interception and page generation
+
+### Technical
+- **New Classes**: `abstract-ai-provider.php`, `class-openai-provider.php`, `class-openai-ajax.php`
+- **Enhanced Classes**: Updated search integration manager with AI capabilities
+- **Admin Enhancements**: New menu structure and configuration interfaces
+- **Performance**: Optimized AI generation with caching and background processing
+- **Compatibility**: Works with any WordPress hosting (no WP Engine dependency required)
+
+### Configuration
+- **OpenAI Settings**: API key configuration, model selection, temperature control
+- **Search Settings**: Auto-approval thresholds, query length limits, generation timeouts
+- **Quality Control**: Content quality scoring and approval workflows
+- **Testing Tools**: Real-time API connectivity testing and validation
+
+## [3.3.1] - 2024-09-24
+
+### Fixed
+- **CRITICAL**: Search Integration Manager not being loaded by main plugin class
+- Missing AJAX handler for search page generation status checking
+- Database schema compatibility issues with search page storage
+- Search queries looking for non-existent database columns
+- Plugin initialization not loading search-related classes despite feature flags being enabled
+
+### Enhanced
+- Complete search-triggered AI page generation workflow now functional
+- Real-time status checking for page generation progress
+- Improved database operations to match existing table structure
+- Enhanced error handling and debugging capabilities for search functionality
+
+### Technical Details
+- **Fixed Plugin Loading**: Added `load_search_generation_features()` and `load_ai_content_generation_features()` methods
+- **Classes Now Loaded**: SPB_Search_Integration_Manager, SPB_WPEngine_Integration_Hub, SPB_AI_Page_Generation_Engine, SPB_Query_Enhancement_Engine, SPB_Content_Approval_System, and all component generators
+- **AJAX Handlers**: Added missing `ajax_check_generation_status()` method for real-time status updates
+- **Database Fixes**: Updated all queries to use existing table structure (page_slug instead of query_hash, page_content for JSON data)
+- **Search Flow**: Complete search interception → content discovery → page generation → approval workflow → admin management
+
+### Result
+- Search functionality now works as designed: "how to remodel a bathroom" searches trigger AI page generation
+- Generated content appears in admin Content Management section
+- Auto-approval system works for high-confidence content (≥80%)
+- Loading page with real-time progress indicators
+- SEO-friendly URLs for generated pages
+
 ## [3.2.0] - 2025-09-22
 
 ### Added

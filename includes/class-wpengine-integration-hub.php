@@ -87,7 +87,8 @@ class SPB_WPEngine_Integration_Hub {
             'merged_results' => [],
             'total_results' => 0,
             'processing_time' => 0,
-            'errors' => []
+            'errors' => [],
+            'fallback_used' => false
         ];
         
         $start_time = microtime(true);
@@ -101,26 +102,47 @@ class SPB_WPEngine_Integration_Hub {
                 $discovery_result['query_enhancement'] = $enhanced_query_data;
             }
             
-            // Discover content from multiple sources in parallel
-            $source_results = $this->discover_from_all_sources(
-                $discovery_result['enhanced_query'],
-                $user_context,
-                $options
-            );
+            // Test API connection first
+            $connection_test = $this->api_client->test_connection();
             
-            $discovery_result['sources'] = $source_results;
-            
-            // Merge and rank results
-            $discovery_result['merged_results'] = $this->merge_and_rank_results(
-                $source_results,
-                $options
-            );
+            if ($connection_test['success']) {
+                // Discover content from multiple sources in parallel
+                $source_results = $this->discover_from_all_sources(
+                    $discovery_result['enhanced_query'],
+                    $user_context,
+                    $options
+                );
+                
+                $discovery_result['sources'] = $source_results;
+                
+                // Merge and rank results
+                $discovery_result['merged_results'] = $this->merge_and_rank_results(
+                    $source_results,
+                    $options
+                );
+            } else {
+                // Use fallback content generation
+                error_log('SPB: WP Engine API not available, using fallback content generation');
+                $discovery_result['fallback_used'] = true;
+                $discovery_result['errors'][] = 'WP Engine API not available: ' . $connection_test['error'];
+                
+                $fallback_results = $this->generate_fallback_content($query, $user_context, $options);
+                $discovery_result['merged_results'] = $fallback_results;
+            }
             
             $discovery_result['total_results'] = count($discovery_result['merged_results']);
             
         } catch (Exception $e) {
             error_log('SPB Content Discovery Error: ' . $e->getMessage());
             $discovery_result['errors'][] = $e->getMessage();
+            
+            // Use fallback content generation on any error
+            if (empty($discovery_result['merged_results'])) {
+                $discovery_result['fallback_used'] = true;
+                $fallback_results = $this->generate_fallback_content($query, $user_context, $options);
+                $discovery_result['merged_results'] = $fallback_results;
+                $discovery_result['total_results'] = count($discovery_result['merged_results']);
+            }
         }
         
         $discovery_result['processing_time'] = round((microtime(true) - $start_time) * 1000, 2);
@@ -330,6 +352,141 @@ class SPB_WPEngine_Integration_Hub {
         }
         
         return min(1.0, max(0.0, $score));
+    }
+    
+    /**
+     * Generate fallback content when WP Engine APIs are not available
+     *
+     * @param string $query Search query
+     * @param array $user_context User context data
+     * @param array $options Discovery options
+     * @return array Fallback content results
+     */
+    private function generate_fallback_content($query, $user_context, $options) {
+        global $wpdb;
+        
+        $fallback_results = [];
+        
+        // Search existing WordPress content
+        $search_terms = explode(' ', $query);
+        $search_terms = array_filter($search_terms, function($term) {
+            return strlen($term) > 2; // Filter out short words
+        });
+        
+        if (!empty($search_terms)) {
+            // Build search query for WordPress posts/pages
+            $like_conditions = [];
+            $search_values = [];
+            
+            foreach ($search_terms as $term) {
+                $like_conditions[] = "(post_title LIKE %s OR post_content LIKE %s)";
+                $search_values[] = '%' . $wpdb->esc_like($term) . '%';
+                $search_values[] = '%' . $wpdb->esc_like($term) . '%';
+            }
+            
+            $where_clause = implode(' OR ', $like_conditions);
+            
+            $sql = "SELECT ID, post_title, post_content, post_excerpt, post_type, post_date 
+                    FROM {$wpdb->posts} 
+                    WHERE post_status = 'publish' 
+                    AND post_type IN ('post', 'page') 
+                    AND ({$where_clause})
+                    ORDER BY post_date DESC 
+                    LIMIT %d";
+            
+            $search_values[] = $options['max_results_per_source'];
+            
+            $posts = $wpdb->get_results($wpdb->prepare($sql, $search_values));
+            
+            foreach ($posts as $post) {
+                $excerpt = !empty($post->post_excerpt) ? $post->post_excerpt : wp_trim_words($post->post_content, 30);
+                
+                $fallback_results[] = [
+                    'id' => 'fallback_' . $post->ID,
+                    'title' => $post->post_title,
+                    'content' => $post->post_content,
+                    'excerpt' => $excerpt,
+                    'url' => get_permalink($post->ID),
+                    'type' => $post->post_type,
+                    'metadata' => [
+                        'author' => get_the_author_meta('display_name', get_post_field('post_author', $post->ID)),
+                        'publishDate' => $post->post_date,
+                        'categories' => wp_get_post_categories($post->ID, ['fields' => 'names']),
+                        'tags' => wp_get_post_tags($post->ID, ['fields' => 'names'])
+                    ],
+                    'source' => 'fallback_search',
+                    'sources' => ['fallback_search'],
+                    'base_score' => 0.6, // Decent score for fallback content
+                    'composite_score' => 0.6,
+                    'original_result' => $post
+                ];
+            }
+        }
+        
+        // If no WordPress content found, generate synthetic content
+        if (empty($fallback_results)) {
+            $fallback_results = $this->generate_synthetic_content($query, $options);
+        }
+        
+        return $fallback_results;
+    }
+    
+    /**
+     * Generate synthetic content as last resort
+     *
+     * @param string $query Search query
+     * @param array $options Discovery options
+     * @return array Synthetic content results
+     */
+    private function generate_synthetic_content($query, $options) {
+        $synthetic_results = [];
+        
+        // Generate basic content based on query
+        $query_words = explode(' ', $query);
+        $main_topic = ucfirst($query);
+        
+        // Create a few synthetic results
+        $templates = [
+            [
+                'title' => "Complete Guide to {$main_topic}",
+                'content' => "This comprehensive guide covers everything you need to know about {$query}. Learn the basics, advanced techniques, and best practices.",
+                'type' => 'guide'
+            ],
+            [
+                'title' => "Top Tips for {$main_topic}",
+                'content' => "Discover expert tips and tricks for {$query}. These proven strategies will help you achieve better results.",
+                'type' => 'tips'
+            ],
+            [
+                'title' => "{$main_topic}: Getting Started",
+                'content' => "New to {$query}? This beginner-friendly introduction will help you get started with the fundamentals.",
+                'type' => 'beginner'
+            ]
+        ];
+        
+        foreach ($templates as $index => $template) {
+            $synthetic_results[] = [
+                'id' => 'synthetic_' . ($index + 1),
+                'title' => $template['title'],
+                'content' => $template['content'],
+                'excerpt' => wp_trim_words($template['content'], 20),
+                'url' => '#',
+                'type' => 'synthetic',
+                'metadata' => [
+                    'author' => 'Smart Page Builder',
+                    'publishDate' => current_time('mysql'),
+                    'categories' => [$main_topic],
+                    'tags' => $query_words
+                ],
+                'source' => 'synthetic_content',
+                'sources' => ['synthetic_content'],
+                'base_score' => 0.4, // Lower score for synthetic content
+                'composite_score' => 0.4,
+                'original_result' => $template
+            ];
+        }
+        
+        return $synthetic_results;
     }
     
     /**

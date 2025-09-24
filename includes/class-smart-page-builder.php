@@ -128,6 +128,103 @@ class Smart_Page_Builder {
                 require_once $file_path;
             }
         }
+        
+        // Load v3.1+ search generation features if enabled
+        if (defined('SPB_V3_SEARCH_GENERATION') && SPB_V3_SEARCH_GENERATION) {
+            $this->load_search_generation_features();
+        }
+        
+        // Load v3.1+ AI content generation features if enabled
+        if (defined('SPB_V3_AI_CONTENT_GENERATION') && SPB_V3_AI_CONTENT_GENERATION) {
+            $this->load_ai_content_generation_features();
+        }
+    }
+    
+    /**
+     * Load search generation features
+     */
+    private function load_search_generation_features() {
+        // Check if search tables exist
+        if (!$this->is_search_generation_available()) {
+            return;
+        }
+        
+        // Load search-related classes
+        $search_classes = [
+            'includes/class-wpengine-api-client.php',
+            'includes/class-query-enhancement-engine.php',
+            'includes/class-wpengine-integration-hub.php',
+            'includes/class-search-database-manager.php',
+            'includes/class-search-integration-manager.php'
+        ];
+        
+        foreach ($search_classes as $class_file) {
+            $file_path = SPB_PLUGIN_DIR . $class_file;
+            if (file_exists($file_path)) {
+                require_once $file_path;
+            }
+        }
+        
+        // Initialize search integration manager
+        if (class_exists('SPB_Search_Integration_Manager')) {
+            new SPB_Search_Integration_Manager();
+        }
+    }
+    
+    /**
+     * Load AI content generation features
+     */
+    private function load_ai_content_generation_features() {
+        // Load AI generation classes
+        $ai_classes = [
+            'includes/class-ai-page-generation-engine.php',
+            'includes/class-template-engine.php',
+            'includes/class-content-approval-system.php',
+            'includes/class-quality-assessment-engine.php'
+        ];
+        
+        foreach ($ai_classes as $class_file) {
+            $file_path = SPB_PLUGIN_DIR . $class_file;
+            if (file_exists($file_path)) {
+                require_once $file_path;
+            }
+        }
+        
+        // Load component generators
+        $component_generators = [
+            'includes/component-generators/abstract-component-generator.php',
+            'includes/component-generators/class-hero-generator.php',
+            'includes/component-generators/class-article-generator.php',
+            'includes/component-generators/class-cta-generator.php'
+        ];
+        
+        foreach ($component_generators as $class_file) {
+            $file_path = SPB_PLUGIN_DIR . $class_file;
+            if (file_exists($file_path)) {
+                require_once $file_path;
+            }
+        }
+    }
+    
+    /**
+     * Check if search generation is available
+     */
+    public function is_search_generation_available() {
+        global $wpdb;
+        
+        $required_tables = [
+            $wpdb->prefix . 'spb_search_pages',
+            $wpdb->prefix . 'spb_query_enhancements',
+            $wpdb->prefix . 'spb_generated_components'
+        ];
+        
+        foreach ($required_tables as $table) {
+            if ($wpdb->get_var("SHOW TABLES LIKE '$table'") !== $table) {
+                return false;
+            }
+        }
+        
+        return true;
     }
     
     /**
