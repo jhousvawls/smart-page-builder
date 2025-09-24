@@ -696,6 +696,7 @@ class SPB_Content_Approval_System {
         global $wpdb;
         
         $table_name = $wpdb->prefix . 'spb_content_approvals';
+        $search_pages_table = $wpdb->prefix . 'spb_search_pages';
         
         // Check if table exists
         $table_exists = $wpdb->get_var($wpdb->prepare(
@@ -703,7 +704,17 @@ class SPB_Content_Approval_System {
             $table_name
         ));
         
-        if (!$table_exists) {
+        $search_pages_exists = $wpdb->get_var($wpdb->prepare(
+            "SHOW TABLES LIKE %s",
+            $search_pages_table
+        ));
+        
+        error_log('SPB DEBUG: Content Approval checking tables:');
+        error_log('SPB DEBUG: - spb_content_approvals exists: ' . ($table_exists ? 'YES' : 'NO'));
+        error_log('SPB DEBUG: - spb_search_pages exists: ' . ($search_pages_exists ? 'YES' : 'NO'));
+        
+        // If neither table exists, return empty
+        if (!$table_exists && !$search_pages_exists) {
             return [
                 'items' => [],
                 'total_items' => 0,
@@ -711,6 +722,12 @@ class SPB_Content_Approval_System {
                 'current_page' => $page,
                 'per_page' => $per_page
             ];
+        }
+        
+        // If search pages table exists but approval table doesn't, use search pages
+        if (!$table_exists && $search_pages_exists) {
+            error_log('SPB DEBUG: Using spb_search_pages table for approval queue');
+            return $this->get_approval_queue_from_search_pages($filters, $page, $per_page);
         }
         
         // Build WHERE clause
@@ -826,6 +843,136 @@ class SPB_Content_Approval_System {
         ));
         
         return $stats;
+    }
+
+    /**
+     * Get approval queue data from search pages table (fallback)
+     *
+     * @param array $filters Filters to apply
+     * @param int $page Page number
+     * @param int $per_page Items per page
+     * @return array Approval queue data
+     */
+    private function get_approval_queue_from_search_pages($filters = [], $page = 1, $per_page = 20) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'spb_search_pages';
+        
+        error_log('SPB DEBUG: Getting approval queue from search pages table');
+        
+        // Build WHERE clause
+        $where_conditions = ['1=1'];
+        $where_values = [];
+        
+        // Map approval status filters to search pages status
+        if (!empty($filters['status'])) {
+            switch ($filters['status']) {
+                case 'pending_review':
+                case 'under_review':
+                    $where_conditions[] = 'approval_status = %s';
+                    $where_values[] = 'pending';
+                    break;
+                case 'approved':
+                case 'auto_approved':
+                    $where_conditions[] = 'approval_status = %s';
+                    $where_values[] = 'approved';
+                    break;
+                case 'rejected':
+                    $where_conditions[] = 'approval_status = %s';
+                    $where_values[] = 'rejected';
+                    break;
+            }
+        }
+        
+        if (!empty($filters['date_from'])) {
+            $where_conditions[] = 'created_at >= %s';
+            $where_values[] = $filters['date_from'];
+        }
+        
+        if (!empty($filters['date_to'])) {
+            $where_conditions[] = 'created_at <= %s';
+            $where_values[] = $filters['date_to'];
+        }
+        
+        $where_clause = implode(' AND ', $where_conditions);
+        
+        // Get total count
+        $count_query = "SELECT COUNT(*) FROM {$table_name} WHERE {$where_clause}";
+        if (!empty($where_values)) {
+            $count_query = $wpdb->prepare($count_query, $where_values);
+        }
+        $total_items = $wpdb->get_var($count_query);
+        
+        error_log('SPB DEBUG: Total items found: ' . $total_items);
+        
+        // Get paginated results
+        $offset = ($page - 1) * $per_page;
+        $query = "SELECT * FROM {$table_name} WHERE {$where_clause} ORDER BY created_at DESC LIMIT %d OFFSET %d";
+        $query_values = array_merge($where_values, [$per_page, $offset]);
+        $results = $wpdb->get_results($wpdb->prepare($query, $query_values), ARRAY_A);
+        
+        error_log('SPB DEBUG: Query results count: ' . count($results));
+        
+        // Convert search pages format to approval queue format
+        $converted_results = [];
+        foreach ($results as $result) {
+            $converted_results[] = [
+                'id' => $result['id'],
+                'search_query' => $result['search_query'],
+                'content_data' => $result['page_content'], // JSON string
+                'quality_score' => $result['quality_score'] ?? 0.75,
+                'status' => $this->map_approval_status_from_search_pages($result['approval_status']),
+                'priority' => $this->determine_priority_from_quality($result['quality_score'] ?? 0.75),
+                'created_at' => $result['created_at'],
+                'assigned_to' => null,
+                'assigned_role' => 'editor'
+            ];
+        }
+        
+        error_log('SPB DEBUG: Converted results count: ' . count($converted_results));
+        
+        return [
+            'items' => $converted_results,
+            'total_items' => $total_items,
+            'total_pages' => ceil($total_items / $per_page),
+            'current_page' => $page,
+            'per_page' => $per_page
+        ];
+    }
+    
+    /**
+     * Map approval status from search pages to approval system format
+     *
+     * @param string $search_status Status from search pages table
+     * @return string Mapped approval status
+     */
+    private function map_approval_status_from_search_pages($search_status) {
+        switch ($search_status) {
+            case 'pending':
+                return 'pending_review';
+            case 'approved':
+                return 'approved';
+            case 'rejected':
+                return 'rejected';
+            default:
+                return 'pending_review';
+        }
+    }
+    
+    /**
+     * Determine priority from quality score
+     *
+     * @param float $quality_score Quality score (0-1)
+     * @return string Priority level
+     */
+    private function determine_priority_from_quality($quality_score) {
+        if ($quality_score >= 0.8) {
+            return 'high';
+        } elseif ($quality_score >= 0.6) {
+            return 'normal';
+        } else {
+            return 'low';
+        }
     }
 
     // Helper methods for internal operations

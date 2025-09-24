@@ -218,24 +218,15 @@ class SPB_Search_Integration_Manager {
         // Check if we already have a generated page for this query
         $existing_page = $this->get_existing_search_page($search_query);
         
-        if ($existing_page) {
-            error_log("SPB DEBUG: Found existing page, checking for page_url");
-            
-            // FIX: Check if page_url exists before redirecting
-            if (isset($existing_page['page_url']) && !empty($existing_page['page_url'])) {
-                error_log("SPB DEBUG: Valid page_url found, redirecting");
-                $this->redirect_to_search_page($existing_page);
-                return;
-            } else {
-                error_log("SPB DEBUG: Missing page_url, generating new URL and updating database");
-                // Generate missing page_url and update the database
-                $this->fix_missing_page_url($existing_page);
-                return;
-            }
+        if ($existing_page && $existing_page['approval_status'] === 'approved') {
+            error_log("SPB DEBUG: Found approved existing page, redirecting");
+            $page_url = $this->generate_search_page_url($this->generate_query_hash($search_query));
+            wp_redirect($page_url);
+            exit;
         }
         
-        error_log("SPB DEBUG: No existing page, triggering generation");
-        // Trigger page generation
+        error_log("SPB DEBUG: No existing approved page, triggering generation");
+        // Trigger page generation with immediate response
         $this->trigger_search_page_generation($search_query, $query);
     }
     
@@ -398,7 +389,7 @@ class SPB_Search_Integration_Manager {
         // Get user context for personalization
         $user_context = $this->get_user_context();
         
-        // Start page generation in background
+        // Generate content immediately instead of background processing
         $generation_data = [
             'query' => $query,
             'query_hash' => $this->generate_query_hash($query),
@@ -407,11 +398,27 @@ class SPB_Search_Integration_Manager {
             'generation_options' => $this->generation_options
         ];
         
-        // Schedule immediate generation
-        wp_schedule_single_event(time(), 'spb_generate_search_page_background', [$generation_data]);
+        error_log('SPB DEBUG: Starting immediate content generation for: ' . $query);
         
-        // For immediate response, start generation and show loading page
-        $this->show_generation_loading_page($query, $generation_data);
+        // Generate content immediately
+        try {
+            $result = $this->generate_enhanced_search_page($query, $user_context);
+            
+            if ($result['success']) {
+                error_log('SPB DEBUG: Content generation successful, redirecting to: ' . $result['page_url']);
+                // Redirect to the generated page
+                wp_redirect($result['page_url']);
+                exit;
+            } else {
+                error_log('SPB DEBUG: Content generation failed: ' . $result['error']);
+                // Fall back to loading page with error handling
+                $this->show_generation_loading_page($query, $generation_data);
+            }
+        } catch (Exception $e) {
+            error_log('SPB DEBUG: Content generation exception: ' . $e->getMessage());
+            // Fall back to loading page
+            $this->show_generation_loading_page($query, $generation_data);
+        }
     }
     
     /**
@@ -689,6 +696,13 @@ class SPB_Search_Integration_Manager {
         
         $table_name = $wpdb->prefix . 'spb_search_pages';
         
+        // Check if table exists first
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") !== $table_name) {
+            error_log('❌ SPB DEBUG: Table ' . $table_name . ' does not exist!');
+            // Try to create the table
+            $this->create_search_pages_table();
+        }
+        
         // Calculate confidence score
         $confidence_score = $this->calculate_page_confidence($discovery_result);
         
@@ -699,6 +713,13 @@ class SPB_Search_Integration_Manager {
         $page_title = 'Smart Page: ' . ucfirst($query);
         $page_content = wp_json_encode($discovery_result);
         $page_slug = sanitize_title($query_hash);
+        
+        error_log('SPB DEBUG: Attempting to store search page data:');
+        error_log('SPB DEBUG: - Query: ' . $query);
+        error_log('SPB DEBUG: - Page Title: ' . $page_title);
+        error_log('SPB DEBUG: - Page Slug: ' . $page_slug);
+        error_log('SPB DEBUG: - Approval Status: ' . $approval_status);
+        error_log('SPB DEBUG: - Quality Score: ' . $confidence_score);
         
         $result = $wpdb->insert(
             $table_name,
@@ -715,7 +736,16 @@ class SPB_Search_Integration_Manager {
             ['%s', '%s', '%s', '%s', '%s', '%f', '%s', '%s']
         );
         
-        return $result ? $wpdb->insert_id : false;
+        if ($result === false) {
+            error_log('❌ SPB DEBUG: Database insert failed!');
+            error_log('❌ SPB DEBUG: MySQL Error: ' . $wpdb->last_error);
+            error_log('❌ SPB DEBUG: Last Query: ' . $wpdb->last_query);
+            return false;
+        } else {
+            $insert_id = $wpdb->insert_id;
+            error_log('✅ SPB DEBUG: Successfully stored search page with ID: ' . $insert_id);
+            return $insert_id;
+        }
     }
     
     /**
@@ -1378,6 +1408,49 @@ class SPB_Search_Integration_Manager {
         ];
         
         return wp_json_encode($formatted_content);
+    }
+    
+    /**
+     * Create search pages table if it doesn't exist
+     */
+    private function create_search_pages_table() {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'spb_search_pages';
+        $charset_collate = $wpdb->get_charset_collate();
+        
+        $sql = "CREATE TABLE $table_name (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            search_query varchar(255) NOT NULL,
+            page_title varchar(255) NOT NULL,
+            page_content longtext NOT NULL,
+            page_slug varchar(200) NOT NULL,
+            page_status varchar(20) DEFAULT 'pending',
+            quality_score decimal(3,2) DEFAULT NULL,
+            approval_status varchar(20) DEFAULT 'pending',
+            approved_by bigint(20) unsigned DEFAULT NULL,
+            approved_at datetime DEFAULT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY page_slug (page_slug),
+            KEY search_query (search_query),
+            KEY page_status (page_status),
+            KEY approval_status (approval_status),
+            KEY quality_score (quality_score)
+        ) $charset_collate;";
+        
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        $result = dbDelta($sql);
+        
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") === $table_name) {
+            error_log('✅ SPB DEBUG: Successfully created table ' . $table_name);
+            return true;
+        } else {
+            error_log('❌ SPB DEBUG: Failed to create table ' . $table_name);
+            error_log('❌ SPB DEBUG: dbDelta result: ' . print_r($result, true));
+            return false;
+        }
     }
     
     /**

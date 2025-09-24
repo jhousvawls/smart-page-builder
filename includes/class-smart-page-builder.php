@@ -19,7 +19,7 @@ class Smart_Page_Builder {
     /**
      * Plugin version
      */
-    const VERSION = '3.1.0';
+    const VERSION = '3.4.9';
     
     /**
      * Single instance of the class
@@ -144,18 +144,14 @@ class Smart_Page_Builder {
      * Load search generation features
      */
     private function load_search_generation_features() {
-        // Check if search tables exist
-        if (!$this->is_search_generation_available()) {
-            return;
-        }
-        
-        // Load search-related classes
+        // Load search-related classes (with graceful degradation)
         $search_classes = [
             'includes/class-wpengine-api-client.php',
             'includes/class-query-enhancement-engine.php',
             'includes/class-wpengine-integration-hub.php',
             'includes/class-search-database-manager.php',
-            'includes/class-search-integration-manager.php'
+            'includes/class-search-integration-manager.php',
+            'includes/class-search-integration-manager-debug.php'  // DEBUG VERSION
         ];
         
         foreach ($search_classes as $class_file) {
@@ -165,9 +161,15 @@ class Smart_Page_Builder {
             }
         }
         
-        // Initialize search integration manager
+        // Initialize search integration manager (production version)
         if (class_exists('SPB_Search_Integration_Manager')) {
             new SPB_Search_Integration_Manager();
+            error_log('SPB DEBUG: Using production search integration manager');
+        }
+        
+        // Create missing tables if needed
+        if (!$this->is_search_generation_available()) {
+            $this->create_missing_search_tables();
         }
     }
     
@@ -333,5 +335,89 @@ class Smart_Page_Builder {
      */
     public static function deactivate() {
         // Deactivation logic handled in class-deactivator.php
+    }
+    
+    /**
+     * Create missing search tables on demand
+     */
+    private function create_missing_search_tables() {
+        global $wpdb;
+        
+        $charset_collate = $wpdb->get_charset_collate();
+        
+        // Search pages table
+        $search_pages_table = $wpdb->prefix . 'spb_search_pages';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$search_pages_table'") !== $search_pages_table) {
+            $sql = "CREATE TABLE $search_pages_table (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                search_query varchar(255) NOT NULL,
+                page_title varchar(255) NOT NULL,
+                page_content longtext NOT NULL,
+                page_slug varchar(200) NOT NULL,
+                page_status varchar(20) DEFAULT 'pending',
+                quality_score decimal(3,2) DEFAULT NULL,
+                approval_status varchar(20) DEFAULT 'pending',
+                approved_by bigint(20) unsigned DEFAULT NULL,
+                approved_at datetime DEFAULT NULL,
+                created_at datetime DEFAULT CURRENT_TIMESTAMP,
+                updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                UNIQUE KEY page_slug (page_slug),
+                KEY search_query (search_query),
+                KEY page_status (page_status),
+                KEY approval_status (approval_status),
+                KEY quality_score (quality_score)
+            ) $charset_collate;";
+            
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+        }
+        
+        // Query enhancements table
+        $query_enhancements_table = $wpdb->prefix . 'spb_query_enhancements';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$query_enhancements_table'") !== $query_enhancements_table) {
+            $sql = "CREATE TABLE $query_enhancements_table (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                original_query varchar(255) NOT NULL,
+                enhanced_query varchar(500) NOT NULL,
+                enhancement_type varchar(50) NOT NULL,
+                confidence_score decimal(3,2) DEFAULT NULL,
+                used_count int(11) DEFAULT 0,
+                created_at datetime DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY original_query (original_query),
+                KEY enhancement_type (enhancement_type),
+                KEY confidence_score (confidence_score)
+            ) $charset_collate;";
+            
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+        }
+        
+        // Generated components table
+        $generated_components_table = $wpdb->prefix . 'spb_generated_components';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$generated_components_table'") !== $generated_components_table) {
+            $sql = "CREATE TABLE $generated_components_table (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                search_page_id bigint(20) unsigned NOT NULL,
+                component_type varchar(50) NOT NULL,
+                component_content longtext NOT NULL,
+                ai_provider varchar(50) NOT NULL,
+                generation_time decimal(4,2) DEFAULT NULL,
+                quality_score decimal(3,2) DEFAULT NULL,
+                personalization_data longtext DEFAULT NULL,
+                created_at datetime DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY search_page_id (search_page_id),
+                KEY component_type (component_type),
+                KEY ai_provider (ai_provider),
+                KEY quality_score (quality_score)
+            ) $charset_collate;";
+            
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+        }
+        
+        error_log('SPB: Created missing search tables on demand');
     }
 }

@@ -5,6 +5,48 @@ All notable changes to Smart Page Builder will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0] - 2024-09-24
+
+### Fixed
+- **CRITICAL**: Fixed admin interface integration issue where generated content wasn't appearing in Content Management and Content Approval sections
+- Fixed table name mismatch between Search Integration Manager (`spb_search_pages`) and admin interfaces (`spb_generated_content`, `spb_content_approvals`)
+- Fixed column name mapping issues in admin interface database queries
+- Fixed missing fallback methods for graceful handling of missing database tables
+
+### Added
+- **Complete Admin Interface Integration**: Generated content now appears in WordPress admin immediately
+- **Comprehensive Debugging System**: Added extensive logging throughout the entire pipeline for troubleshooting
+- **Automatic Table Creation**: Database tables are created automatically when missing
+- **Fallback Methods**: Added `get_approval_queue_from_search_pages()` method for seamless data integration
+- **Status Mapping**: Intelligent mapping between different table formats and approval statuses
+- **Enhanced Error Handling**: Comprehensive error handling with detailed logging for database operations
+
+### Enhanced
+- **Content Management Interface**: Now queries correct table (`spb_search_pages`) with proper column mapping
+- **Content Approval System**: Added fallback to search pages table when approval table doesn't exist
+- **Database Storage**: Enhanced with automatic table creation and comprehensive error handling
+- **Search Integration Manager**: Added missing `create_search_pages_table()` method with proper schema
+
+### Technical Details
+- **Fixed Classes**: 
+  - `smart-page-builder-admin-content-management.php` - Updated to query correct table with proper debugging
+  - `class-content-approval-system.php` - Added fallback methods and status mapping
+  - `class-search-integration-manager.php` - Enhanced database storage with table creation
+- **New Methods**:
+  - `get_approval_queue_from_search_pages()` - Converts search pages format to approval queue format
+  - `map_approval_status_from_search_pages()` - Maps approval statuses between table formats
+  - `determine_priority_from_quality()` - Determines priority levels from quality scores
+  - `create_search_pages_table()` - Creates missing database table with proper schema
+- **Database Integration**: Complete pipeline from search query → content generation → admin visibility
+- **Error Recovery**: Automatic table creation and graceful degradation when database issues occur
+
+### Result
+- **Complete Search-to-Admin Pipeline**: Search queries now generate Smart Pages that immediately appear in WordPress admin
+- **Content Management Functional**: Generated pages appear in Content Management with titles, quality scores, and creation dates
+- **Content Approval Working**: Pages show in approval queue with proper status tracking and workflow functionality
+- **Database Operations Reliable**: Tables created automatically, comprehensive error handling, debug logging
+- **Admin Integration Complete**: Full CRUD operations, analytics tracking, and content lifecycle management
+
 ## [3.4.4] - 2025-09-24
 
 ### Fixed

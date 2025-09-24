@@ -1,6 +1,6 @@
 # Smart Page Builder
 
-**Version:** 3.4.4  
+**Version:** 3.5.0
 **WordPress Plugin for AI-Powered Content Generation**
 
 Transform your WordPress site into an intelligent content platform that automatically generates personalized pages based on user searches, powered by ChatGPT and advanced personalization algorithms.

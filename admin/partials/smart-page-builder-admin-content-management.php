@@ -18,10 +18,14 @@ if (!defined('ABSPATH')) {
 $plugin_data = get_plugin_data(SPB_PLUGIN_FILE);
 $plugin_version = $plugin_data['Version'] ?? '3.2.0';
 
-// Get real content data from database
+// Get real content data from database - FIXED: Use correct table name
 global $wpdb;
-$content_table = $wpdb->prefix . 'spb_generated_content';
+$content_table = $wpdb->prefix . 'spb_search_pages'; // FIXED: Changed from spb_generated_content
 $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$content_table'") == $content_table;
+
+// Add debugging
+error_log('SPB DEBUG: Content Management checking table: ' . $content_table);
+error_log('SPB DEBUG: Table exists: ' . ($table_exists ? 'YES' : 'NO'));
 
 $content_queue = array();
 $total_content = 0;
@@ -31,19 +35,24 @@ $rejected_count = 0;
 $avg_quality = 0;
 
 if ($table_exists) {
-    // Get content from database
+    // Get content from database - FIXED: Use correct column names
     $content_queue = $wpdb->get_results(
-        "SELECT * FROM $content_table ORDER BY created_at DESC LIMIT 50",
+        "SELECT id, search_query, page_title as title, page_slug, page_status, quality_score, approval_status as status, created_at FROM $content_table ORDER BY created_at DESC LIMIT 50",
         ARRAY_A
     );
     
-    // Calculate summary statistics
+    error_log('SPB DEBUG: Found ' . count($content_queue) . ' content items');
+    error_log('SPB DEBUG: Sample content: ' . print_r(array_slice($content_queue, 0, 2), true));
+    
+    // Calculate summary statistics - FIXED: Use correct column names
     $total_content = $wpdb->get_var("SELECT COUNT(*) FROM $content_table");
-    $pending_count = $wpdb->get_var("SELECT COUNT(*) FROM $content_table WHERE status = 'pending'");
-    $approved_count = $wpdb->get_var("SELECT COUNT(*) FROM $content_table WHERE status = 'approved'");
-    $rejected_count = $wpdb->get_var("SELECT COUNT(*) FROM $content_table WHERE status = 'rejected'");
+    $pending_count = $wpdb->get_var("SELECT COUNT(*) FROM $content_table WHERE approval_status = 'pending'");
+    $approved_count = $wpdb->get_var("SELECT COUNT(*) FROM $content_table WHERE approval_status = 'approved'");
+    $rejected_count = $wpdb->get_var("SELECT COUNT(*) FROM $content_table WHERE approval_status = 'rejected'");
     $avg_quality = $wpdb->get_var("SELECT AVG(quality_score) FROM $content_table WHERE quality_score IS NOT NULL");
-    $avg_quality = $avg_quality ? round($avg_quality) : 0;
+    $avg_quality = $avg_quality ? round($avg_quality * 100) : 0; // Convert to percentage
+    
+    error_log('SPB DEBUG: Stats - Total: ' . $total_content . ', Pending: ' . $pending_count . ', Approved: ' . $approved_count . ', Avg Quality: ' . $avg_quality);
 } else {
     // Fallback to WordPress posts with Smart Page Builder meta
     $posts = get_posts(array(
