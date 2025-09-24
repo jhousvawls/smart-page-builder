@@ -95,6 +95,13 @@ class Smart_Page_Builder_Admin {
         $current_page = $this->get_current_admin_page();
         $is_plugin_page = strpos($current_page, $this->plugin_name) === 0;
         
+        // Debug: Add console logging to help troubleshoot
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("SPB Debug - Current page: " . $current_page);
+            error_log("SPB Debug - Plugin name: " . $this->plugin_name);
+            error_log("SPB Debug - Is plugin page: " . ($is_plugin_page ? 'YES' : 'NO'));
+        }
+        
         // Only enqueue on plugin pages
         if (!$is_plugin_page) {
             return;
