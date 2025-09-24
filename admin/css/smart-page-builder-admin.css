@@ -1,0 +1,628 @@
+/**
+ * Smart Page Builder Admin Styles
+ *
+ * @package Smart_Page_Builder
+ * @since   3.0.0
+ */
+
+/* ==========================================================================
+   Admin Layout
+   ========================================================================== */
+
+.smart-page-builder-admin {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.spb-admin-header {
+    background: #fff;
+    border-bottom: 1px solid #e1e1e1;
+    padding: 20px 0;
+    margin-bottom: 20px;
+}
+
+.spb-admin-header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.spb-admin-header .version {
+    color: #646970;
+    font-size: 14px;
+    font-weight: normal;
+    margin-left: 10px;
+}
+
+/* ==========================================================================
+   Navigation Tabs
+   ========================================================================== */
+
+.spb-nav-tabs {
+    border-bottom: 1px solid #c3c4c7;
+    margin-bottom: 20px;
+}
+
+.spb-nav-tabs ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+}
+
+.spb-nav-tabs li {
+    margin: 0;
+}
+
+.spb-nav-tabs a {
+    display: block;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: #646970;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.spb-nav-tabs a:hover,
+.spb-nav-tabs a.active {
+    color: #2271b1;
+    border-bottom-color: #2271b1;
+}
+
+/* ==========================================================================
+   Cards and Panels
+   ========================================================================== */
+
+.spb-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.spb-card h2,
+.spb-card h3 {
+    margin-top: 0;
+    color: #1d2327;
+}
+
+.spb-card .description {
+    color: #646970;
+    margin-bottom: 15px;
+}
+
+.spb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* ==========================================================================
+   Forms
+   ========================================================================== */
+
+.spb-form-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.spb-form-table th {
+    text-align: left;
+    padding: 15px 10px 15px 0;
+    width: 200px;
+    vertical-align: top;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.spb-form-table td {
+    padding: 15px 0;
+    vertical-align: top;
+}
+
+.spb-form-table input[type="text"],
+.spb-form-table input[type="email"],
+.spb-form-table input[type="url"],
+.spb-form-table input[type="password"],
+.spb-form-table textarea,
+.spb-form-table select {
+    width: 100%;
+    max-width: 400px;
+    padding: 8px 12px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.spb-form-table input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.spb-form-table .description {
+    color: #646970;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.spb-button {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #2271b1;
+    color: #fff;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.spb-button:hover {
+    background: #135e96;
+    color: #fff;
+}
+
+.spb-button.secondary {
+    background: #f6f7f7;
+    color: #2c3338;
+    border: 1px solid #c3c4c7;
+}
+
+.spb-button.secondary:hover {
+    background: #f0f0f1;
+    color: #2c3338;
+}
+
+.spb-button.danger {
+    background: #d63638;
+}
+
+.spb-button.danger:hover {
+    background: #b32d2e;
+}
+
+.spb-button:disabled {
+    background: #c3c4c7;
+    color: #a7aaad;
+    cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Status Indicators
+   ========================================================================== */
+
+.spb-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.spb-status.active {
+    background: #00a32a;
+    color: #fff;
+}
+
+.spb-status.inactive {
+    background: #dcdcde;
+    color: #646970;
+}
+
+.spb-status.error {
+    background: #d63638;
+    color: #fff;
+}
+
+.spb-status.warning {
+    background: #dba617;
+    color: #fff;
+}
+
+/* ==========================================================================
+   Analytics Dashboard
+   ========================================================================== */
+
+.spb-analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.spb-metric-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+}
+
+.spb-metric-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2271b1;
+    margin-bottom: 5px;
+}
+
+.spb-metric-label {
+    color: #646970;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.spb-metric-change {
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.spb-metric-change.positive {
+    color: #00a32a;
+}
+
+.spb-metric-change.negative {
+    color: #d63638;
+}
+
+/* ==========================================================================
+   Data Tables
+   ========================================================================== */
+
+.spb-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.spb-data-table th {
+    background: #f6f7f7;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #1d2327;
+    border-bottom: 1px solid #c3c4c7;
+}
+
+.spb-data-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.spb-data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.spb-data-table tr:hover {
+    background: #f6f7f7;
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.spb-loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #2271b1;
+    border-radius: 50%;
+    animation: spb-spin 1s linear infinite;
+}
+
+@keyframes spb-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spb-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* ==========================================================================
+   Notices
+   ========================================================================== */
+
+.spb-notice {
+    padding: 12px 15px;
+    margin: 15px 0;
+    border-left: 4px solid #72aee6;
+    background: #f0f6fc;
+    border-radius: 0 4px 4px 0;
+}
+
+.spb-notice.error {
+    border-left-color: #d63638;
+    background: #fcf0f1;
+}
+
+.spb-notice.warning {
+    border-left-color: #dba617;
+    background: #fcf9e8;
+}
+
+.spb-notice.success {
+    border-left-color: #00a32a;
+    background: #edfaef;
+}
+
+.spb-notice p {
+    margin: 0;
+    color: #1d2327;
+}
+
+/* ==========================================================================
+   Personalization Features
+   ========================================================================== */
+
+.spb-interest-vector {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.spb-interest-label {
+    flex: 1;
+    font-weight: 500;
+}
+
+.spb-interest-score {
+    width: 100px;
+    height: 8px;
+    background: #f0f0f1;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0 10px;
+}
+
+.spb-interest-score-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00a32a, #2271b1);
+    transition: width 0.3s ease;
+}
+
+.spb-interest-value {
+    font-size: 12px;
+    color: #646970;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* ==========================================================================
+   Search Generation Features
+   ========================================================================== */
+
+.spb-search-query {
+    background: #f6f7f7;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.spb-quality-score {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.spb-quality-score.high {
+    background: #00a32a;
+}
+
+.spb-quality-score.medium {
+    background: #dba617;
+}
+
+.spb-quality-score.low {
+    background: #d63638;
+}
+
+/* ==========================================================================
+   Approval Queue
+   ========================================================================== */
+
+.spb-approval-item {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+.spb-approval-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.spb-approval-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d2327;
+    margin: 0;
+}
+
+.spb-approval-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.spb-approval-content {
+    color: #646970;
+    line-height: 1.6;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .spb-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .spb-analytics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    
+    .spb-form-table th,
+    .spb-form-table td {
+        display: block;
+        width: 100%;
+        padding: 10px 0;
+    }
+    
+    .spb-form-table th {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .spb-nav-tabs ul {
+        flex-wrap: wrap;
+    }
+    
+    .spb-approval-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+/* ==========================================================================
+   Dark Mode Support
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+    .spb-card {
+        background: #1d2327;
+        border-color: #3c434a;
+        color: #f0f0f1;
+    }
+    
+    .spb-card h2,
+    .spb-card h3 {
+        color: #f0f0f1;
+    }
+    
+    .spb-form-table input[type="text"],
+    .spb-form-table input[type="email"],
+    .spb-form-table input[type="url"],
+    .spb-form-table input[type="password"],
+    .spb-form-table textarea,
+    .spb-form-table select {
+        background: #2c3338;
+        border-color: #3c434a;
+        color: #f0f0f1;
+    }
+    
+    .spb-data-table {
+        background: #1d2327;
+        border-color: #3c434a;
+        color: #f0f0f1;
+    }
+    
+    .spb-data-table th {
+        background: #2c3338;
+        border-color: #3c434a;
+        color: #f0f0f1;
+    }
+    
+    .spb-data-table tr:hover {
+        background: #2c3338;
+    }
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+    .spb-nav-tabs,
+    .spb-approval-actions,
+    .spb-button {
+        display: none;
+    }
+    
+    .spb-card {
+        border: 1px solid #000;
+        box-shadow: none;
+        page-break-inside: avoid;
+    }
+    
+    .spb-data-table {
+        border: 1px solid #000;
+    }
+    
+    .spb-data-table th,
+    .spb-data-table td {
+        border: 1px solid #000;
+    }
+}
+
+/* ==========================================================================
+   Page Header Descriptions
+   ========================================================================== */
+
+.spb-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.spb-page-header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.spb-page-description {
+    color: #646970;
+    font-size: 14px;
+    font-style: italic;
+    margin: 0;
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .spb-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .spb-page-description {
+        text-align: left;
+    }
+}
