@@ -678,6 +678,11 @@ if ($table_exists) {
 </style>
 
 <script>
+// CACHE BUSTER - Force latest version to load
+console.log('=== SPB CACHE BUSTER ===');
+console.log('Timestamp:', new Date().toISOString());
+console.log('Random:', Math.random());
+
 // COMPREHENSIVE DIAGNOSTIC SCRIPT
 console.log('=== SPB DIAGNOSTIC START ===');
 
