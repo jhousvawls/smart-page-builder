@@ -410,8 +410,8 @@ class Smart_Page_Builder_Admin {
      * @since    3.2.0
      */
     public function display_plugin_content_management_page() {
-        // Use cache bypass version to test if caching is the issue
-        include_once SPB_PLUGIN_DIR . 'admin/partials/smart-page-builder-admin-content-management-v2.php';
+        // Use ultimate cache bypass version to test if caching is the issue
+        include_once SPB_PLUGIN_DIR . 'admin/partials/smart-page-builder-admin-content-management-v3.php';
     }
 
     /**
