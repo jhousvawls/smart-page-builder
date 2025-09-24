@@ -11,7 +11,7 @@
  * Plugin Name:       Smart Page Builder
  * Plugin URI:        https://smartpagebuilder.com
  * Description:       Revolutionary dual AI platform combining content generation with real-time personalization. Transform search queries into valuable content while delivering personalized user experiences through advanced Interest Vector analysis.
- * Version:           3.2.0
+ * Version:           3.2.2
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            Smart Page Builder Team
@@ -31,7 +31,7 @@ if (!defined('ABSPATH')) {
 /**
  * Plugin version
  */
-define('SPB_VERSION', '3.1.0');
+define('SPB_VERSION', '3.2.2');
 
 /**
  * Plugin directory path
