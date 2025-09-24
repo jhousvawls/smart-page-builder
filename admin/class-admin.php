@@ -108,7 +108,7 @@ class Smart_Page_Builder_Admin {
             false
         );
 
-        // Localize script with admin data
+        // Localize script with admin data - this ensures spb_admin is available on all plugin pages
         wp_localize_script(
             $this->plugin_name,
             'spb_admin',
