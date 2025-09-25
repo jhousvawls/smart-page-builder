@@ -233,12 +233,25 @@ abstract class SPB_Abstract_AI_Provider {
         if (!isset($stats['monthly_usage'][$current_month])) {
             $stats['monthly_usage'][$current_month] = [
                 'requests' => 0,
-                'tokens' => 0
+                'tokens' => 0,
+                'model_usage' => []
             ];
         }
         
         $stats['monthly_usage'][$current_month]['requests']++;
         $stats['monthly_usage'][$current_month]['tokens'] += $usage_data['tokens'] ?? 0;
+        
+        // Track model-specific usage for cost calculation
+        $model = $usage_data['model'] ?? $this->default_model;
+        if (!isset($stats['monthly_usage'][$current_month]['model_usage'][$model])) {
+            $stats['monthly_usage'][$current_month]['model_usage'][$model] = [
+                'requests' => 0,
+                'tokens' => 0
+            ];
+        }
+        
+        $stats['monthly_usage'][$current_month]['model_usage'][$model]['requests']++;
+        $stats['monthly_usage'][$current_month]['model_usage'][$model]['tokens'] += $usage_data['tokens'] ?? 0;
         
         update_option($option_key, $stats);
     }

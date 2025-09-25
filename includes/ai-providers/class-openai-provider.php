@@ -409,4 +409,87 @@ class SPB_OpenAI_Provider extends SPB_Abstract_AI_Provider {
             'model' => $model
         ];
     }
+    
+    /**
+     * Calculate cost for actual token usage
+     *
+     * @param int $tokens Number of tokens used
+     * @param string $model Model used
+     * @return float Cost in USD
+     */
+    public function calculate_cost($tokens, $model = null) {
+        $model = $model ?? $this->default_model;
+        $pricing = $this->get_model_pricing($model);
+        
+        if (!$pricing) {
+            return 0;
+        }
+        
+        return ($tokens / 1000) * $pricing['cost_per_1k_tokens'];
+    }
+    
+    /**
+     * Get monthly cost for current month
+     *
+     * @param string $month Optional month in Y-m format
+     * @return array Monthly cost breakdown
+     */
+    public function get_monthly_cost($month = null) {
+        $month = $month ?? date('Y-m');
+        $stats = $this->get_usage_stats();
+        
+        if (!isset($stats['monthly_usage'][$month])) {
+            return [
+                'total_cost' => 0,
+                'total_tokens' => 0,
+                'total_requests' => 0,
+                'model_breakdown' => [],
+                'month' => $month
+            ];
+        }
+        
+        $monthly_data = $stats['monthly_usage'][$month];
+        $total_cost = 0;
+        $model_breakdown = [];
+        
+        // Calculate cost based on model usage if available
+        if (isset($monthly_data['model_usage'])) {
+            foreach ($monthly_data['model_usage'] as $model => $usage) {
+                $cost = $this->calculate_cost($usage['tokens'], $model);
+                $total_cost += $cost;
+                $model_breakdown[$model] = [
+                    'tokens' => $usage['tokens'],
+                    'requests' => $usage['requests'],
+                    'cost' => $cost
+                ];
+            }
+        } else {
+            // Fallback: estimate cost using default model
+            $total_cost = $this->calculate_cost($monthly_data['tokens']);
+        }
+        
+        return [
+            'total_cost' => round($total_cost, 4),
+            'total_tokens' => $monthly_data['tokens'],
+            'total_requests' => $monthly_data['requests'],
+            'model_breakdown' => $model_breakdown,
+            'month' => $month
+        ];
+    }
+    
+    /**
+     * Get cost per request average
+     *
+     * @param string $month Optional month in Y-m format
+     * @return float Average cost per request
+     */
+    public function get_average_cost_per_request($month = null) {
+        $monthly_cost = $this->get_monthly_cost($month);
+        
+        if ($monthly_cost['total_requests'] === 0) {
+            return 0;
+        }
+        
+        return round($monthly_cost['total_cost'] / $monthly_cost['total_requests'], 4);
+    }
 }

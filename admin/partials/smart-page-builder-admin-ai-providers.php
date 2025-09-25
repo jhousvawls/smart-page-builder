@@ -253,7 +253,42 @@ $usage_stats = $openai_provider->get_usage_stats();
                     </div>
                     <div class="spb-stat-label"><?php _e('This Month', 'smart-page-builder'); ?></div>
                 </div>
+                
+                <div class="spb-stat-item">
+                    <div class="spb-stat-number">
+                        <?php 
+                        $monthly_cost = $openai_provider->get_monthly_cost();
+                        echo '$' . number_format($monthly_cost['total_cost'], 3);
+                        ?>
+                    </div>
+                    <div class="spb-stat-label"><?php _e('Monthly Cost', 'smart-page-builder'); ?></div>
+                </div>
+                
+                <div class="spb-stat-item">
+                    <div class="spb-stat-number">
+                        <?php 
+                        $avg_cost = $openai_provider->get_average_cost_per_request();
+                        echo '$' . number_format($avg_cost, 4);
+                        ?>
+                    </div>
+                    <div class="spb-stat-label"><?php _e('Avg Cost/Request', 'smart-page-builder'); ?></div>
+                </div>
             </div>
+            
+            <?php if (!empty($monthly_cost['model_breakdown'])): ?>
+            <div class="spb-cost-breakdown">
+                <h5><?php _e('Monthly Cost Breakdown', 'smart-page-builder'); ?></h5>
+                <div class="spb-model-costs">
+                    <?php foreach ($monthly_cost['model_breakdown'] as $model => $breakdown): ?>
+                        <div class="spb-model-cost-item">
+                            <span class="model-name"><?php echo esc_html($openai_provider->get_available_models()[$model]['name'] ?? $model); ?></span>
+                            <span class="model-usage"><?php echo number_format($breakdown['tokens']); ?> tokens</span>
+                            <span class="model-cost">$<?php echo number_format($breakdown['cost'], 4); ?></span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
     </div>
@@ -396,6 +431,52 @@ $usage_stats = $openai_provider->get_usage_stats();
     border-radius: 4px;
     font-family: monospace;
     font-size: 12px;
+}
+
+.spb-cost-breakdown {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.spb-cost-breakdown h5 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 14px;
+}
+
+.spb-model-costs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.spb-model-cost-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.spb-model-cost-item .model-name {
+    font-weight: 600;
+    color: #333;
+    flex: 1;
+}
+
+.spb-model-cost-item .model-usage {
+    color: #666;
+    margin: 0 10px;
+}
+
+.spb-model-cost-item .model-cost {
+    font-weight: 600;
+    color: #0073aa;
+    min-width: 60px;
+    text-align: right;
 }
 </style>
 

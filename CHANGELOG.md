@@ -5,6 +5,70 @@ All notable changes to Smart Page Builder will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.1] - 2025-09-25
+
+### Added
+- **Brain Icon Implementation**: Professional brain icon now displays in WordPress admin sidebar
+- **Intelligent Icon Selection**: Automatic icon selection based on WordPress version compatibility
+- **Multi-Version Support**: Works across all WordPress versions (3.8+) with intelligent fallbacks
+- **Custom SVG Fallback**: Base64-encoded brain icon for ultimate compatibility on older WordPress versions
+
+### Enhanced
+- **Admin Menu Appearance**: No more blank space in WordPress admin sidebar
+- **Professional Branding**: Brain icon reinforces Smart Page Builder's AI-powered capabilities
+- **User Experience**: Clear visual identification in crowded admin menus
+- **Cross-Version Compatibility**: Graceful degradation ensures icon always displays
+
+### Technical Details
+- **Enhanced Admin Class**: Added `get_menu_icon()` method with intelligent icon selection
+- **WordPress Version Detection**: Checks compatibility before using specific dashicons
+- **Fallback System**: 
+  - Primary: `dashicons-brain` (WordPress 5.2+)
+  - Secondary: `dashicons-lightbulb` (WordPress 3.8+)
+  - Tertiary: `dashicons-admin-generic` (WordPress 3.8+)
+  - Ultimate: Custom SVG brain icon (all versions)
+- **CSS Support**: Added brain icon styling with hover effects and fallback support
+- **Zero Performance Impact**: Pure PHP/CSS solution with no JavaScript dependencies
+
+### Fixed
+- **Missing Admin Icon**: Brain icon now displays consistently across all WordPress versions
+- **Blank Menu Space**: Professional appearance in WordPress admin sidebar
+- **Version Compatibility**: Works on WordPress 3.8+ with appropriate fallbacks
+
+## [3.5.1] - 2025-09-25
+
+### Enhanced
+- **Settings Page Redesign**: Complete overhaul of plugin configuration interface
+- **Menu Structure Optimization**: Renamed "Configuration" to "System Settings" for better clarity
+- **Streamlined Interface**: Reduced from 3 tabs to 2 logical sections (Core Settings + System Information)
+- **Improved User Experience**: Better organization, validation, and contextual help
+- **System Diagnostics**: Enhanced system information display with feature status indicators
+
+### Added
+- **Settings Validation System**: Comprehensive form validation with helpful error messages
+- **System Information Export**: JSON export functionality for support and troubleshooting
+- **Feature Status Dashboard**: Visual indicators for active plugin features
+- **Cache Management**: Integrated cache clearing with progress feedback
+- **Performance Settings**: Consolidated performance-related configuration options
+
+### Fixed
+- **Redundant Settings**: Removed duplicate "Enable Analytics" setting (handled by Analytics & Reports page)
+- **Configuration Confusion**: Eliminated overlap between settings and AI configuration pages
+- **Menu Hierarchy**: Improved visual clarity and logical organization
+
+### Technical Details
+- **Complete Rewrite**: `smart-page-builder-admin-settings.php` - New validation system and modern interface
+- **Menu Updates**: Updated admin menu labels and structure in `class-admin.php`
+- **New Settings Option**: Consolidated system settings into `spb_system_settings` option
+- **Enhanced JavaScript**: Improved tab switching and AJAX operations with better error handling
+- **Responsive Design**: Mobile-friendly layout with proper spacing and visual feedback
+
+### Result
+- Settings page transformed from source of confusion into valuable system management tool
+- Clear separation between system settings and AI-specific configuration
+- Improved user onboarding and reduced support complexity
+- Better maintainability and future extensibility
+
 ## [3.5.0] - 2024-09-24
 
 ### Fixed

@@ -626,3 +626,36 @@
         text-align: left;
     }
 }
+
+/* ==========================================================================
+   Brain Icon Support
+   ========================================================================== */
+
+/* Ensure brain icon displays properly in WordPress admin menu */
+#adminmenu .toplevel_page_smart-page-builder .wp-menu-image:before {
+    content: "\f110" !important; /* dashicons-brain */
+    font-family: dashicons !important;
+}
+
+/* Fallback for older WordPress versions */
+#adminmenu .toplevel_page_smart-page-builder .wp-menu-image img {
+    width: 20px !important;
+    height: 20px !important;
+    opacity: 0.6;
+}
+
+#adminmenu .toplevel_page_smart-page-builder:hover .wp-menu-image img,
+#adminmenu .toplevel_page_smart-page-builder.wp-has-current-submenu .wp-menu-image img {
+    opacity: 1;
+}
+
+/* Custom brain icon styling */
+.spb-brain-icon {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0iY3VycmVudENvbG9yIj4KICAgIDxwYXRoIGQ9Ik0xMCAyQzcuNzkgMiA2IDMuNzkgNiA2YzAgLjUuMSAxIC4zIDEuNEM1LjUgNy44IDUgOC44IDUgMTBjMCAxLjcgMS4zIDMgMyAzaDRjMS43IDAgMy0xLjMgMy0zIDAtMS4yLS41LTIuMi0xLjMtMi42LjItLjQuMy0uOS4zLTEuNCAwLTIuMjEtMS43OS00LTQtNHptLTIgOGMtLjYgMC0xLS40LTEtMXMuNC0xIDEtMSAxIC40IDEgMS0uNCAxLTEgMXptNCAwYy0uNiAwLTEtLjQtMS0xcy40LTEgMS0xIDEgLjQgMSAxLS40IDEtMSAxeiIvPgo8L3N2Zz4=');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}

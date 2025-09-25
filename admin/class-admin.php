@@ -157,9 +157,12 @@ class Smart_Page_Builder_Admin {
      * Add plugin admin menu
      *
      * @since    3.0.0
-     * @updated  3.2.0 Enhanced navigation structure with workflow-based grouping
+     * @updated  3.6.1 Enhanced brain icon with fallback support
      */
     public function add_plugin_admin_menu() {
+        // Determine the best icon to use
+        $menu_icon = $this->get_menu_icon();
+        
         // Main menu page with brain icon
         add_menu_page(
             __('Smart Page Builder', 'smart-page-builder'),
@@ -167,7 +170,7 @@ class Smart_Page_Builder_Admin {
             'manage_options',
             $this->plugin_name,
             array($this, 'display_plugin_admin_page'),
-            'dashicons-brain',
+            $menu_icon,
             30
         );
 
@@ -228,8 +231,8 @@ class Smart_Page_Builder_Admin {
         // Configuration section (groups settings and integrations)
         add_submenu_page(
             $this->plugin_name,
-            __('Configuration', 'smart-page-builder'),
-            __('Configuration', 'smart-page-builder'),
+            __('System Settings', 'smart-page-builder'),
+            __('System Settings', 'smart-page-builder'),
             'manage_options',
             $this->plugin_name . '-settings',
             array($this, 'display_plugin_settings_page')
@@ -321,6 +324,9 @@ class Smart_Page_Builder_Admin {
         register_setting('spb_openai_settings', 'spb_openai_search_model');
         register_setting('spb_openai_settings', 'spb_openai_temperature');
         register_setting('spb_openai_settings', 'spb_openai_max_tokens');
+
+        // System settings (v3.5.1)
+        register_setting('spb_system_settings', 'spb_system_settings');
     }
 
     /**
@@ -1522,9 +1528,9 @@ class Smart_Page_Builder_Admin {
             $recent_approvals = $wpdb->get_results(
                 $wpdb->prepare(
                     "SELECT * FROM $approvals_table 
-                     WHERE approved_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) 
+                     WHERE reviewed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) 
                      AND status = 'approved'
-                     ORDER BY approved_at DESC 
+                     ORDER BY reviewed_at DESC 
                      LIMIT %d",
                     3
                 )
@@ -1535,7 +1541,7 @@ class Smart_Page_Builder_Admin {
                     'type' => 'content_approved',
                     'title' => 'Content Approved',
                     'description' => 'AI-generated content approved',
-                    'time' => strtotime($approval->approved_at),
+                    'time' => strtotime($approval->reviewed_at),
                     'icon' => '✅'
                 );
             }
@@ -2452,5 +2458,67 @@ class Smart_Page_Builder_Admin {
         $html .= '</div>';
         
         return $html;
+    }
+    
+    /**
+     * Get the appropriate menu icon for the plugin
+     *
+     * @since    3.6.1
+     * @return   string    Menu icon (dashicon or data URI)
+     */
+    private function get_menu_icon() {
+        // First try the brain icon (available in WordPress 5.2+)
+        global $wp_version;
+        
+        if (version_compare($wp_version, '5.2', '>=')) {
+            // WordPress 5.2+ supports dashicons-brain
+            return 'dashicons-brain';
+        }
+        
+        // Fallback icons for older WordPress versions
+        $fallback_icons = array(
+            'dashicons-lightbulb',      // Lightbulb (available since WP 3.8)
+            'dashicons-admin-generic',  // Generic admin icon
+            'dashicons-admin-tools'     // Tools icon
+        );
+        
+        // Return the first available fallback
+        foreach ($fallback_icons as $icon) {
+            if ($this->is_dashicon_available($icon)) {
+                return $icon;
+            }
+        }
+        
+        // Ultimate fallback: custom SVG brain icon as data URI
+        return $this->get_custom_brain_icon();
+    }
+    
+    /**
+     * Check if a dashicon is available
+     *
+     * @since    3.6.1
+     * @param    string    $icon    Dashicon name
+     * @return   bool              Whether the icon is available
+     */
+    private function is_dashicon_available($icon) {
+        // Basic check - most dashicons have been available since WP 3.8
+        global $wp_version;
+        return version_compare($wp_version, '3.8', '>=');
+    }
+    
+    /**
+     * Get custom brain icon as data URI
+     *
+     * @since    3.6.1
+     * @return   string    Data URI for brain icon
+     */
+    private function get_custom_brain_icon() {
+        // Simple brain icon SVG
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 2C7.79 2 6 3.79 6 6c0 .5.1 1 .3 1.4C5.5 7.8 5 8.8 5 10c0 1.7 1.3 3 3 3h4c1.7 0 3-1.3 3-3 0-1.2-.5-2.2-1.3-2.6.2-.4.3-.9.3-1.4 0-2.21-1.79-4-4-4zm-2 8c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1zm4 0c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1z"/>
+        </svg>';
+        
+        // Convert to data URI
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
     }
 }

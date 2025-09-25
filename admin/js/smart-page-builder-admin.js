@@ -77,6 +77,11 @@
             var $tab = $(this);
             var target = $tab.attr('href');
             
+            // Skip if this is a Settings page tab (handled by inline JavaScript)
+            if ($tab.closest('.spb-system-settings').length) {
+                return;
+            }
+            
             // Update active tab
             $tab.closest('.spb-nav-tabs').find('a').removeClass('active');
             $tab.addClass('active');
@@ -98,6 +103,11 @@
          * Initialize tab functionality
          */
         initTabs: function() {
+            // Skip tab initialization for Settings page (handled by inline JavaScript)
+            if ($('.spb-system-settings').length) {
+                return;
+            }
+            
             // Show active tab on page load
             var hash = window.location.hash;
             if (hash && $(hash).length) {

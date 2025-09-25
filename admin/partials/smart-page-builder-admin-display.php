@@ -63,9 +63,9 @@ $approvals_table = $wpdb->prefix . 'spb_content_approvals';
 if ($wpdb->get_var("SHOW TABLES LIKE '$approvals_table'") == $approvals_table) {
     $recent_approvals = $wpdb->get_results(
         "SELECT * FROM $approvals_table 
-         WHERE approved_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) 
-         AND status = 'approved'
-         ORDER BY approved_at DESC 
+        WHERE reviewed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        AND status = 'approved'
+        ORDER BY reviewed_at DESC
          LIMIT 3"
     );
     
@@ -74,7 +74,7 @@ if ($wpdb->get_var("SHOW TABLES LIKE '$approvals_table'") == $approvals_table) {
             'type' => 'content_approved',
             'title' => 'Content Approved',
             'description' => 'AI-generated content approved',
-            'time' => strtotime($approval->approved_at)
+            'time' => strtotime($approval->reviewed_at)
         );
     }
 }
